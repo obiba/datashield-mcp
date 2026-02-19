@@ -1,0 +1,11 @@
+[project]
+name = "datashield-mcp"
+version = "0.1.0"
+description = "A MCP server to interact with DataSHIELD"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "datashield @ git+https://github.com/datashield/datashield-python.git@master",
+    "datashield-opal>=0.2.0",
+    "mcp[cli]>=1.26.0",
+]
