@@ -62,7 +62,7 @@ def open(ctx: Context[ServerSession, AppContext], server_names: list[str]) -> di
     logins = DSLoginBuilder(names = server_names).build()
     session = DSSession(logins)
     session.open()
-    print(f"Opened DataSHIELD session with servers: {session.get_connection_names()} / {server_names}")
+    logger.info(f"Opened DataSHIELD session with servers: {session.get_connection_names()} / {server_names}")
     # store the session for later use
     session_id = str(uuid.uuid4())
     ctx.request_context.lifespan_context.sessions[session_id] = session
@@ -139,5 +139,5 @@ def greet_user(name: str, style: str = "friendly") -> str:
 
 # Run with streamable HTTP transport
 if __name__ == "__main__":
-    #mcp.run(transport="streamable-http")
-    mcp.run(transport="sse")
+    #mcp.run(transport="sse")
+    mcp.run()
