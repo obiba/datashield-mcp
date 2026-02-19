@@ -72,9 +72,7 @@ def available_servers(ctx: Context[ServerSession, AppContext]) -> list[str]:
 
 
 @mcp.tool()
-def open(
-    ctx: Context[ServerSession, AppContext], server_names: list[str]
-) -> dict[str, str | list[str]]:
+def open(ctx: Context[ServerSession, AppContext], server_names: list[str]) -> dict[str, str | list[str]]:
     """Open a DataSHIELD session
     Args:
         server_names: A list of server names to connect to
@@ -84,9 +82,7 @@ def open(
     logins = DSLoginBuilder(names=server_names).build()
     session = DSSession(logins)
     session.open()
-    logger.info(
-        f"Opened DataSHIELD session with servers: {session.get_connection_names()} / {server_names}"
-    )
+    logger.info(f"Opened DataSHIELD session with servers: {session.get_connection_names()} / {server_names}")
     # store the session for later use
     session_id = str(uuid.uuid4())
     ctx.request_context.lifespan_context.sessions[session_id] = session
@@ -105,9 +101,7 @@ def close(ctx: Context[ServerSession, AppContext], session_id: str) -> None:
 
 
 @mcp.tool()
-def list_tables(
-    ctx: Context[ServerSession, AppContext], session_id: str
-) -> dict[str, list[str]]:
+def list_tables(ctx: Context[ServerSession, AppContext], session_id: str) -> dict[str, list[str]]:
     """List tables available in the connected DataSHIELD session"""
     session = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not session:
@@ -118,9 +112,7 @@ def list_tables(
 
 
 @mcp.tool()
-def list_resources(
-    ctx: Context[ServerSession, AppContext], session_id: str
-) -> dict[str, list[str]]:
+def list_resources(ctx: Context[ServerSession, AppContext], session_id: str) -> dict[str, list[str]]:
     """List resources available in the connected DataSHIELD session"""
     session = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not session:
@@ -131,9 +123,7 @@ def list_resources(
 
 
 @mcp.tool()
-def list_symbols(
-    ctx: Context[ServerSession, AppContext], session_id: str
-) -> dict[str, list[str]]:
+def list_symbols(ctx: Context[ServerSession, AppContext], session_id: str) -> dict[str, list[str]]:
     """List symbols available in the connected DataSHIELD session"""
     session = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not session:
@@ -171,9 +161,7 @@ def assign_tables(
         raise ValueError("Not connected to DataSHIELD")
     session.assign_table(symbol, tables=tables)
     symbols = session.ls()
-    logger.info(
-        f"[{session_id}] Assigned tables to symbol '{symbol}'. Current symbols: {symbols}"
-    )
+    logger.info(f"[{session_id}] Assigned tables to symbol '{symbol}'. Current symbols: {symbols}")
     return symbols
 
 
@@ -192,22 +180,16 @@ def assign_resources(
     res_symbol = f"{symbol}_res"
     session.assign_resource(res_symbol, resources=resources)
     if as_data_frame:
-        session.assign_expr(
-            symbol, f"as.resource.data.frame({res_symbol}, strict=TRUE)"
-        )
+        session.assign_expr(symbol, f"as.resource.data.frame({res_symbol}, strict=TRUE)")
     else:
         session.assign_expr(symbol, f"as.resource.object({res_symbol})")
     symbols = session.ls()
-    logger.info(
-        f"[{session_id}] Assigned resources to symbol '{symbol}'. Current symbols: {symbols}"
-    )
+    logger.info(f"[{session_id}] Assigned resources to symbol '{symbol}'. Current symbols: {symbols}")
     return symbols
 
 
 @mcp.tool()
-def list_colnames(
-    ctx: Context[ServerSession, AppContext], session_id: str, symbol: str
-) -> dict[str, list[str]]:
+def list_colnames(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, list[str]]:
     """List column names of a table in the connected DataSHIELD session"""
     session = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not session:
@@ -218,9 +200,7 @@ def list_colnames(
 
 
 @mcp.tool()
-def get_class(
-    ctx: Context[ServerSession, AppContext], session_id: str, symbol: str
-) -> dict[str, str]:
+def get_class(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, str]:
     """Get the class of a symbol in the connected DataSHIELD session"""
     session = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not session:

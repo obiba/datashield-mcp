@@ -8,6 +8,12 @@ dependencies = [
     "datashield>=0.3.0",
     "datashield-opal>=0.2.0",
     "mcp[cli]>=1.26.0",
+    "matplotlib>=3.10.8",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.10.0",
 ]
 
 [project.scripts]

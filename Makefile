@@ -1,9 +1,20 @@
 install:
-	uv sync
+	uv sync --all-extras
 
 update:
 	rm uv.lock
 	uv sync
+
+lint:
+	uv run ruff check .
+
+fix:
+	uv run ruff check . --fix
+
+format:
+	uv run ruff format .
+
+check: format fix
 
 run-dev:
 	uv run mcp dev src/datashield_mcp/server.py
