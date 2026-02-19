@@ -4,14 +4,28 @@ import uuid
 import logging
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from pathlib import Path
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
 from datashield import DSConfig, DSSession, DSLoginBuilder
 
+# Create log directory if it doesn't exist
+# Try current folder first, fall back to home if not writable
+log_dir = Path.cwd() / ".datashield" / "logs"
+try:
+    log_dir.mkdir(parents=True, exist_ok=True)
+except (PermissionError, OSError):
+    log_dir = Path.home() / ".datashield" / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+# Configure logging to file and stderr
 logging.basicConfig(
-    stream=sys.stderr,
     level=logging.DEBUG,
-    format="%(asctime)s %(levelname)s %(message)s"
+    format="%(asctime)s %(levelname)s %(message)s",
+    handlers=[
+        logging.FileHandler(log_dir / "mcp.log"),
+        logging.StreamHandler(sys.stderr)
+    ]
 )
 logger = logging.getLogger(__name__)
 
