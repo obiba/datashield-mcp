@@ -2,12 +2,21 @@ from collections.abc import AsyncIterator
 import sys
 import uuid
 import logging
+import random
+import io
+
+import base64
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from mcp.server.fastmcp import Context, FastMCP
+from mcp.types import ImageContent, TextContent
 from mcp.server.session import ServerSession
 from datashield import DSConfig, DSSession, DSLoginBuilder
+import matplotlib
+
+matplotlib.use("Agg")  # must be before importing pyplot
+import matplotlib.pyplot as plt
 
 # Create log directory if it doesn't exist
 # Try current folder first, fall back to home if not writable
@@ -221,6 +230,55 @@ def get_mean(
     means = session.aggregate(f"meanDS({symbol})")
     logger.info(f"[{session_id}] Mean for symbol '{symbol}': {means}")
     return means
+
+
+@mcp.tool()
+def get_histogram(
+    ctx: Context[ServerSession, AppContext], session_id: str, symbol: str
+) -> list[TextContent | ImageContent]:
+    """Get the histogram of a symbol in the connected DataSHIELD session"""
+    session = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not session:
+        raise ValueError("Not connected to DataSHIELD")
+    data = session.aggregate(
+        f"histogramDS2({symbol}, num.breaks=20, min=0, max=20, method.indicator=1, k=3, noise=0.25)"
+    )
+    fig, ax = plt.subplots()
+    for server, hist in data.items():
+        logger.info(f"[{session_id}] Histogram for symbol '{symbol}' on server '{server}': {hist}")
+        breaks = hist["value"][0]["value"][0]["value"]
+        counts = hist["value"][0]["value"][1]["value"]
+        # random color
+        color = (random.random(), random.random(), random.random(), 0.5)
+        ax.bar(breaks[1:], counts, width=1, edgecolor="black", linewidth=0.5, alpha=0.5, label=server, color=color)
+    ax.set_xlabel("Value")
+    ax.set_ylabel("Frequency")
+    ax.set_title(f"Histogram of {symbol}")
+    ax.legend()
+
+    # Save to file in .datashield/work/<session_id>
+    work_dir = Path.cwd() / ".datashield" / "work" / session_id
+    work_dir.mkdir(parents=True, exist_ok=True)
+    # Generate filename from symbol (replace special chars)
+    safe_symbol = symbol.replace("$", "_").replace("/", "_").replace("\\", "_")
+    output_path = work_dir / f"histogram_{safe_symbol}.png"
+    fig.savefig(output_path, format="png", bbox_inches="tight")
+    logger.info(f"[{session_id}] Saved histogram to {output_path}")
+
+    # Save to bytes buffer
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", bbox_inches="tight")
+    plt.close(fig)  # important — avoid memory leaks
+    buf.seek(0)
+    image_b64 = base64.b64encode(buf.read()).decode("utf-8")
+
+    return [
+        TextContent(
+            type="text",
+            text=f"Histogram of {symbol} saved to {output_path}",
+        ),
+        ImageContent(type="image", data=image_b64, mimeType="image/png"),
+    ]
 
 
 # Add a dynamic greeting resource
