@@ -6,4 +6,4 @@ update:
 	uv sync
 
 run-dev:
-	uv run mcp dev main.py
+	uv run mcp dev src/datashield_mcp/server.py

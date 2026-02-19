@@ -137,7 +137,8 @@ def greet_user(name: str, style: str = "friendly") -> str:
     return f"{styles.get(style, styles['friendly'])} for someone named {name}."
 
 
-# Run with streamable HTTP transport
-if __name__ == "__main__":
-    #mcp.run(transport="sse")
+def main() -> None:
     mcp.run()
+
+if __name__ == "__main__":
+    main()

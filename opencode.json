@@ -3,7 +3,7 @@
   "mcp": {
     "datashield": {
       "type": "local",
-      "command": ["uv", "run", "main.py"],
+      "command": ["uv", "run", "src/datashield_mcp/server.py"],
       "enabled": true
     }
   }

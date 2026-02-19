@@ -5,7 +5,20 @@ description = "A MCP server to interact with DataSHIELD"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "datashield @ git+https://github.com/datashield/datashield-python.git@master",
+    "datashield>=0.3.0",
     "datashield-opal>=0.2.0",
     "mcp[cli]>=1.26.0",
 ]
+
+[project.scripts]
+datashield-mcp = "datashield_mcp.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/datashield_mcp"]
+
+[tool.hatch.metadata]
+allow-direct-references = true

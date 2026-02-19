@@ -20,7 +20,40 @@ You will also need to setup a DataSHIELD configuration. See the **Configuration*
 
 ## Usage
 
-Use [OpenCode](https://opencode.ai/docs/) from this project folder: the DataSHIELD MCP server is declared in the `opencode.json` configuration file.
+Use [OpenCode](https://opencode.ai/docs/) as the AI agent prompt interface.
+
+### From any folder
+
+Install the DataSHIELD MCP tool using `uv`:
+
+```sh
+uv tool install git+ssh://git@github.com/obiba/datashield-mcp
+```
+
+Set up the `opencode.json` as follows:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "datashield": {
+      "type": "local",
+      "command": ["datashield-mcp"],
+      "enabled": true
+    }
+  }
+}
+```
+
+And verify it is working:
+
+```sh
+opencode mcp list
+```
+
+### From this project
+
+Use OpenCode from this project folder: the DataSHIELD MCP server is declared in the `opencode.json` configuration file.
 
 Verify that the MCP is operational:
 
