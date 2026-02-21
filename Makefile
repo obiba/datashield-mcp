@@ -18,3 +18,6 @@ check: format fix
 
 run-dev:
 	uv run mcp dev src/datashield_mcp/server.py
+
+test:
+	uv run pytest -vv src/tests

@@ -1,9 +1,7 @@
 from collections.abc import AsyncIterator
 import uuid
-import random
-import io
 import urllib.parse
-import base64
+from typing import Any
 
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -11,12 +9,9 @@ from mcp.server.fastmcp import Context, FastMCP
 from mcp.types import ImageContent, TextContent
 from mcp.server.session import ServerSession
 from datashield import DSConfig, DSSession, DSLoginBuilder
-import matplotlib
 from datashield_mcp.models import AppContext, DSContext
-from datashield_mcp.logging import logger
-
-matplotlib.use("Agg")  # must be before importing pyplot
-import matplotlib.pyplot as plt
+from datashield_mcp.logs import logger
+from datashield_mcp.stats import StatsService
 
 
 @asynccontextmanager
@@ -75,7 +70,7 @@ def open(ctx: Context[ServerSession, AppContext], server_names: list[str]) -> di
     logger.info(f"Opened DataSHIELD session with servers: {session.get_connection_names()} / {server_names}")
     # store the session for later use
     session_id = str(uuid.uuid4())
-    ctx.request_context.lifespan_context.sessions[session_id] = DSContext(session=session)
+    ctx.request_context.lifespan_context.sessions[session_id] = DSContext(id=session_id, session=session)
     logger.info(f"[{session_id}] Session stored in application context.")
     return {"session_id": session_id, "servers": session.get_connection_names()}
 
@@ -175,9 +170,9 @@ def remove_symbols(
         raise ValueError("Not connected to DataSHIELD")
     for symbol in symbols:
         dscontext.session.rm(symbol)
-    symbols = dscontext.session.ls()
-    logger.info(f"[{session_id}] Available symbols after removal: {symbols}")
-    return symbols
+    remaining_symbols = dscontext.session.ls()
+    logger.info(f"[{session_id}] Available symbols after removal: {remaining_symbols}")
+    return remaining_symbols
 
 
 @mcp.tool()
@@ -264,30 +259,140 @@ def list_colnames(ctx: Context[ServerSession, AppContext], session_id: str, symb
 
 
 @mcp.tool()
-def get_class(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, str]:
-    """Get the class of a symbol in the connected DataSHIELD session
+def get_classes(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, list[str]]:
+    """Get the classes of a symbol in the connected DataSHIELD session
 
     Args:
         ctx: The MCP tool context, which provides access to the application context and session information
         session_id: The session ID of the connected DataSHIELD session
-        symbol: The symbol name to get the class of in the remote R sessions
+        symbol: The symbol name to get the classes of in the remote R sessions
     Returns:
-        A dictionary mapping server names to the class of the specified symbol in the remote R sessions
+        A dictionary mapping server names to the classes of the specified symbol in the remote R sessions
     Raises:
         ValueError: If the session ID is invalid or not connected to DataSHIELD
     """
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    classes = dscontext.session.aggregate(f"classDS('{symbol}')")
-    logger.info(f"[{session_id}] Class for symbol '{symbol}': {classes}")
-    return classes
+    return StatsService(dscontext).get_classes(symbol)
 
 
 @mcp.tool()
-def get_mean(
-    ctx: Context[ServerSession, AppContext], session_id: str, symbol: str
-) -> dict[str, dict[str, float | str]]:
+def get_length(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, int]:
+    """Get the length of a symbol in the connected DataSHIELD session
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        symbol: The symbol name to get the length of in the remote R sessions
+    Returns:
+        A dictionary mapping server names to the length of the specified symbol in the remote R sessions
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    return StatsService(dscontext).get_length(symbol)
+
+
+@mcp.tool()
+def get_levels(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, list[str]]:
+    """Get the levels of a factor symbol in the connected DataSHIELD session
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        symbol: The symbol name to get the levels of in the remote R sessions
+    Returns:
+        A dictionary mapping server names to the levels of the specified factor symbol in the remote R sessions
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    return StatsService(dscontext).get_levels(symbol)
+
+
+@mcp.tool()
+def get_dimensions(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, list[int]]:
+    """Get the dimensions of a symbol in the connected DataSHIELD session
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        symbol: The symbol name to get the dimensions of in the remote R sessions
+    Returns:
+        A dictionary mapping server names to the dimensions of the specified symbol in the remote R sessions
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    return StatsService(dscontext).get_dimensions(symbol)
+
+
+@mcp.tool()
+def get_frequencies(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, Any]:
+    """Get the frequencies of a factor symbol in the connected DataSHIELD session
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        symbol: The symbol name to get the frequencies of in the remote R sessions
+    Returns:
+        A dictionary mapping server names to the frequencies of the specified factor symbol in the remote R sessions
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    return StatsService(dscontext).get_frequencies(symbol)
+
+
+@mcp.tool()
+def get_quantile_means(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, Any]:
+    """Get the quantiles and means of a numeric symbol in the connected DataSHIELD session
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        symbol: The symbol name to get the quantiles and means of in the remote R sessions
+    Returns:
+        A dictionary mapping server names to the quantiles and means of the specified numeric symbol in the remote R sessions
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    return StatsService(dscontext).get_quantile_means(symbol)
+
+
+@mcp.tool()
+def get_summary(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, Any]:
+    """Get the summary of a symbol in the connected DataSHIELD session
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        symbol: The symbol name to get the summary of in the remote R sessions
+    Returns:
+        A dictionary mapping server names to the summary of the specified symbol in the remote R sessions
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    return StatsService(dscontext).get_summary(symbol)
+
+
+@mcp.tool()
+def get_mean(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, Any]:
     """Get the mean of a symbol in the connected DataSHIELD session
 
     Args:
@@ -302,9 +407,7 @@ def get_mean(
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    means = dscontext.session.aggregate(f"meanDS({symbol})")
-    logger.info(f"[{session_id}] Mean for symbol '{symbol}': {means}")
-    return means
+    return StatsService(dscontext).get_mean(symbol)
 
 
 @mcp.tool()
@@ -325,47 +428,7 @@ def get_histogram(
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    data = dscontext.session.aggregate(
-        f"histogramDS2({symbol}, num.breaks=20, min=0, max=20, method.indicator=1, k=3, noise=0.25)"
-    )
-    fig, ax = plt.subplots()
-    for server, hist in data.items():
-        logger.info(f"[{session_id}] Histogram for symbol '{symbol}' on server '{server}': {hist}")
-        breaks = hist["value"][0]["value"][0]["value"]
-        counts = hist["value"][0]["value"][1]["value"]
-        # random color
-        color = (random.random(), random.random(), random.random(), 0.5)
-        ax.bar(breaks[1:], counts, width=1, edgecolor="black", linewidth=0.5, alpha=0.5, label=server, color=color)
-    ax.set_xlabel("Value")
-    ax.set_ylabel("Frequency")
-    ax.set_title(f"Histogram of {symbol}")
-    ax.legend()
-
-    # Save to file in .datashield/work/<session_id>
-    work_dir = Path.cwd() / ".datashield" / "work" / session_id
-    work_dir.mkdir(parents=True, exist_ok=True)
-    # Generate filename from symbol (replace special chars)
-    safe_symbol = symbol.replace("$", "_").replace("/", "_").replace("\\", "_")
-    output_path = work_dir / f"histogram_{safe_symbol}.png"
-    fig.savefig(output_path, format="png", bbox_inches="tight")
-    logger.info(f"[{session_id}] Saved histogram to {output_path}")
-
-    # Save to bytes buffer
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", bbox_inches="tight")
-    plt.close(fig)  # important — avoid memory leaks
-    buf.seek(0)
-    image_b64 = base64.b64encode(buf.read()).decode("utf-8")
-
-    image_url = f"plot://{session_id}/histogram_{safe_symbol}"
-
-    return [
-        TextContent(
-            type="text",
-            text=f"Histogram of {symbol} saved to {output_path} (url is {image_url})",
-        ),
-        ImageContent(type="image", data=image_b64, mimeType="image/png"),
-    ]
+    return StatsService(dscontext).get_histogram(symbol)
 
 
 # FIXME - make it a tool instead?

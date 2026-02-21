@@ -6,6 +6,7 @@ from datashield import DSSession
 class DSContext:
     """Context for DataSHIELD sessions"""
 
+    id: str
     session: DSSession
 
 
