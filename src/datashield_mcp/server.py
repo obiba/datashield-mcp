@@ -37,6 +37,24 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
 # Create an MCP server
 mcp = FastMCP("DataSHIELD", json_response=True, lifespan=app_lifespan)
 
+PICO_METHODOLOGY_PATH = Path(__file__).parent / "docs" / "datashield-pico.md"
+
+
+@mcp.prompt()
+def pico_methodology() -> str:
+    """PICO methodology guide for DataSHIELD analysis."""
+    return PICO_METHODOLOGY_PATH.read_text()
+
+
+@mcp.tool()
+def get_analysis_methodology() -> str:
+    """
+    Returns the recommended methodology for conducting a DataSHIELD analysis.
+    Call this at the start of any analysis session to understand the PICO framework
+    and the correct sequence of operations.
+    """
+    return PICO_METHODOLOGY_PATH.read_text()
+
 
 @mcp.tool()
 def available_servers(ctx: Context[ServerSession, AppContext]) -> list[str]:

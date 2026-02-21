@@ -51,7 +51,7 @@ This defines your reference group. In DataSHIELD:
 The outcome must be:
 
 - Available (or derivable) in all participating nodes
-- Measurable using DataSHIELD's supported statistical methods — e.g., `ds.glm()` for regression, `ds.survival()` for time-to-event, `ds.lmer()` for mixed models
+- Measurable using DataSHIELD's supported statistical methods — e.g., `glm` for regression, `survival` for time-to-event, `lmer` for mixed models
 - Defined in a way that respects the **aggregation-only** constraint — you can't retrieve individual outcome values, only model outputs
 
 PICO in DataSHIELD is not just a clinical framing tool — it also becomes a **data engineering and governance checklist**. The clearer your PICO, the easier your harmonization, disclosure risk assessment, and analysis planning will be.
@@ -60,7 +60,7 @@ PICO in DataSHIELD is not just a clinical framing tool — it also becomes a **d
 
 **Harmonization before analysis** — Before you can run any PICO-defined analysis, there's often a significant pre-analysis phase where you verify that P, I, C, and O variables are harmonized across nodes. Maelstrom Research's harmonization guidelines are often used here.
 
-**Feasibility checks** — You should run `ds.dim()`, `ds.summary()`, and `ds.table()` calls across nodes early to verify that your population and variable definitions are workable before committing to a full analysis plan.
+**Feasibility checks** — You should run `dimensions`, `summary`, and `table` calls across nodes early to verify that your population and variable definitions are workable before committing to a full analysis plan.
 
 **Statistical limitations** — Not all methods are available in DataSHIELD. Your O (outcome analysis) must be achievable with supported functions. If your PICO question requires, say, a complex Bayesian model or machine learning approach not yet implemented, you'll need to adapt or advocate for new DataSHIELD modules.
 
@@ -76,6 +76,6 @@ Say you want to study the association between **physical inactivity and type 2 d
 - **P**: Adults aged 40–70 across participating cohorts with no diabetes diagnosis at baseline
 - **I**: Self-reported physical inactivity (below WHO guidelines), harmonized to a binary variable across cohorts
 - **C**: Physically active participants (meeting WHO guidelines)
-- **O**: Incident type 2 diabetes (ICD code or self-report), analyzed using `ds.glm()` with logistic regression, adjusted for age, sex, and BMI computed server-side
+- **O**: Incident type 2 diabetes (ICD code or self-report), analyzed using `glm` with logistic regression, adjusted for age, sex, and BMI computed server-side
 
 You would then verify that all four elements can be operationalized in every node before proceeding.
