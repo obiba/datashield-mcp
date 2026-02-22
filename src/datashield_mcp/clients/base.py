@@ -257,17 +257,36 @@ class BaseClient:
         logger.info(f"[{self.dscontext.id}] Mean for symbol '{symbol}': {means}")
         return means
 
-    def get_histogram(self, symbol: str) -> list[TextContent | ImageContent]:
+    def get_histogram(self, symbol: str, num_breaks: int = 20, k: int = 3, noise: float = 0.25) -> list[TextContent | ImageContent]:
         """
         Get the histogram of a symbol in the remote R sessions for a given DataSHIELD session.
 
         Args:
             symbol: The symbol name to get the histogram of in the remote R sessions
+            num_breaks: The number of breaks to use for the histogram (default is 20)
+            k: The number of the nearest neighbours for which their centroid is calculated (default is 3)
+            noise: The noise parameter for the histogram (default is 0.25)
         Returns:
             A list of TextContent and ImageContent objects representing the histogram and metadata for the specified symbol in the remote R sessions
         """
+        # Find min,max values across servers to use for consistent breaks
+        ranges = self.dscontext.session.aggregate(
+            f"histogramDS1({symbol}, method.indicator=1, k={k}, noise={noise})"
+        )
+        min = None
+        max = None
+        for server, range in ranges.items():
+            logger.info(f"[{self.dscontext.id}] Range for symbol '{symbol}' on server '{server}': {range}")
+            if range is not None and len(range) == 2:
+                server_min, server_max = range
+                if min is None or server_min < min:
+                    min = server_min
+                if max is None or server_max > max:
+                    max = server_max
+        if min is None or max is None:
+            raise ValueError(f"Could not determine min and max values for symbol '{symbol}' across servers")
         data = self.dscontext.session.aggregate(
-            f"histogramDS2({symbol}, num.breaks=20, min=0, max=20, method.indicator=1, k=3, noise=0.25)"
+            f"histogramDS2({symbol}, num.breaks={num_breaks}, min={min}, max={max}, method.indicator=1, k={k}, noise={noise})"
         )
         fig, ax = plt.subplots()
         for server, hist in data.items():

@@ -430,7 +430,7 @@ def get_mean(ctx: Context[ServerSession, AppContext], session_id: str, symbol: s
 
 @mcp.tool()
 def get_histogram(
-    ctx: Context[ServerSession, AppContext], session_id: str, symbol: str
+    ctx: Context[ServerSession, AppContext], session_id: str, symbol: str, num_breaks: int = 20, k: int = 3, noise: float = 0.25
 ) -> list[TextContent | ImageContent]:
     """Get the histogram of a symbol in the connected DataSHIELD session
 
@@ -438,6 +438,9 @@ def get_histogram(
         ctx: The MCP tool context, which provides access to the application context and session information
         session_id: The session ID of the connected DataSHIELD session
         symbol: The symbol name to get the histogram of in the remote R sessions
+        num_breaks: The number of breaks to use for the histogram (default is 20)
+        k: The number of the nearest neighbours for which their centroid is calculated (default is 3)
+        noise: The noise parameter for the histogram (default is 0.25)
     Returns:
         A list of TextContent and ImageContent objects containing the histogram information and image for the specified symbol in the remote R sessions
     Raises:
@@ -446,7 +449,7 @@ def get_histogram(
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return BaseClient(dscontext).get_histogram(symbol)
+    return BaseClient(dscontext).get_histogram(symbol, num_breaks=num_breaks, k=k, noise=noise)
 
 
 # FIXME - make it a tool instead?
