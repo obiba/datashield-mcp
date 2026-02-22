@@ -14,7 +14,7 @@ matplotlib.use("Agg")  # must be before importing pyplot
 import matplotlib.pyplot as plt
 
 
-class StatsService:
+class BaseClient:
     def __init__(self, dscontext: DSContext):
         """
         Service for performing statistical operations on DataSHIELD sessions.

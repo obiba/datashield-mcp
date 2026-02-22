@@ -3,7 +3,7 @@ import uuid
 from datashield import DSLoginBuilder, DSSession, DSError
 import pytest
 from datashield_mcp.server import DSContext
-from datashield_mcp.stats import StatsService
+from datashield_mcp.clients.base import BaseClient
 
 
 class TestClass:
@@ -27,7 +27,7 @@ class TestClass:
     @pytest.mark.integration
     def test_get_length(self):
         try:
-            stats_service = StatsService(self.dscontext)
+            stats_service = BaseClient(self.dscontext)
             lengths = stats_service.get_length("df")
             assert lengths == {"server1": 2163}
         except DSError as e:
@@ -36,7 +36,7 @@ class TestClass:
     @pytest.mark.integration
     def test_get_col_length(self):
         try:
-            stats_service = StatsService(self.dscontext)
+            stats_service = BaseClient(self.dscontext)
             lengths = stats_service.get_length("df$LAB_HDL")
             assert lengths == {"server1": 1}  # FIXME: This should be 2163!
         except DSError as e:
@@ -45,7 +45,7 @@ class TestClass:
     @pytest.mark.integration
     def test_get_dimensions(self):
         try:
-            stats_service = StatsService(self.dscontext)
+            stats_service = BaseClient(self.dscontext)
             dimensions = stats_service.get_dimensions("df")
             assert dimensions == {"server1": [2163, 11]}
         except DSError as e:
@@ -54,7 +54,7 @@ class TestClass:
     @pytest.mark.integration
     def test_get_frequencies(self):
         try:
-            stats_service = StatsService(self.dscontext)
+            stats_service = BaseClient(self.dscontext)
             frequencies = stats_service.get_frequencies("df$GENDER")
             assert frequencies == {
                 "server1": {"message": "valid Table", "table": [{"0": 1092, "1": 1071, "Total": 2163}]}
@@ -65,7 +65,7 @@ class TestClass:
     @pytest.mark.integration
     def test_get_quantile_means(self):
         try:
-            stats_service = StatsService(self.dscontext)
+            stats_service = BaseClient(self.dscontext)
             quantile_means = stats_service.get_quantile_means("df$LAB_HDL")
             assert quantile_means == {
                 "server1": [
@@ -85,7 +85,7 @@ class TestClass:
     @pytest.mark.integration
     def test_get_mean(self):
         try:
-            stats_service = StatsService(self.dscontext)
+            stats_service = BaseClient(self.dscontext)
             mean = stats_service.get_mean("df$LAB_HDL")
             assert mean == {
                 "server1": {
@@ -102,7 +102,7 @@ class TestClass:
     @pytest.mark.integration
     def test_is_valid(self):
         try:
-            stats_service = StatsService(self.dscontext)
+            stats_service = BaseClient(self.dscontext)
             validity = stats_service.is_valid("df")
             assert validity == {"server1": True}
         except DSError as e:
@@ -111,7 +111,7 @@ class TestClass:
     @pytest.mark.integration
     def test_get_summary(self):
         try:
-            stats_service = StatsService(self.dscontext)
+            stats_service = BaseClient(self.dscontext)
             summary = stats_service.get_summary("df")
             assert summary == {
                 "server1": {
@@ -141,7 +141,7 @@ class TestClass:
     @pytest.mark.integration
     def test_get_continuous_summary(self):
         try:
-            stats_service = StatsService(self.dscontext)
+            stats_service = BaseClient(self.dscontext)
             summary = stats_service.get_summary("df$LAB_HDL")
             assert summary == {
                 "server1": {
@@ -165,7 +165,7 @@ class TestClass:
     @pytest.mark.integration
     def test_get_categorical_summary(self):
         try:
-            stats_service = StatsService(self.dscontext)
+            stats_service = BaseClient(self.dscontext)
             summary = stats_service.get_summary("df$GENDER")
             assert summary == {
                 "server1": {
