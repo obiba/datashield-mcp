@@ -129,6 +129,75 @@ def list_tables(ctx: Context[ServerSession, AppContext], session_id: str) -> dic
 
 
 @mcp.tool()
+def list_table_variables(
+    ctx: Context[ServerSession, AppContext], session_id: str, tables: dict[str, str]
+) -> dict[str, list[dict]]:
+    """List variables in a table available in the connected DataSHIELD session
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        tables: A dictionary mapping server names to table names to list variables for
+    Returns:
+        A dictionary mapping server names to lists of available variables in the specified table
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD, or if the specified table does not exist
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    variables = dscontext.session.variables(tables=tables)
+    logger.info(f"[{session_id}] Available variables in table: {variables}")
+    return variables
+
+
+@mcp.tool()
+def list_taxonomies(ctx: Context[ServerSession, AppContext], session_id: str) -> dict[str, list[dict]]:
+    """List taxonomies available in the connected DataSHIELD session. A taxonomy is a hierarchical structure of vocabulary
+    terms that can be used to annotate variables in the data repository.
+    Depending on the data repository's capabilities, taxonomies can be used to perform structured
+    queries when searching for variables.
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+    Returns:
+        A dictionary mapping server names to lists of available taxonomies
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    taxonomies = dscontext.session.taxonomies()
+    logger.info(f"[{session_id}] Available taxonomies: {taxonomies}")
+    return taxonomies
+
+
+@mcp.tool()
+def search_variables(ctx: Context[ServerSession, AppContext], session_id: str, query: str) -> dict[str, dict]:
+    """Search for variables in the connected DataSHIELD session using a query string and an optional taxonomy filter
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        query: The search query string to use when searching for variables in the form of a simple keyword search or a
+        more complex query using taxonomy based terms (e.g. <taxonomy>-<vocabulary>:"<term>"), with logicals (AND, OR) and
+        parentheses for grouping.
+    Returns:
+        A dictionary mapping server names to the search results for variables that match the query and taxonomy filter
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD, or if the specified taxonomy does not exist
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    variables = dscontext.session.search_variables(query=query)
+    logger.info(f"[{session_id}] Search results for query '{query}': {variables}")
+    return variables
+
+
+@mcp.tool()
 def list_resources(ctx: Context[ServerSession, AppContext], session_id: str) -> dict[str, list[str]]:
     """List resources available in the connected DataSHIELD session
 
@@ -430,7 +499,12 @@ def get_mean(ctx: Context[ServerSession, AppContext], session_id: str, symbol: s
 
 @mcp.tool()
 def get_histogram(
-    ctx: Context[ServerSession, AppContext], session_id: str, symbol: str, num_breaks: int = 20, k: int = 3, noise: float = 0.25
+    ctx: Context[ServerSession, AppContext],
+    session_id: str,
+    symbol: str,
+    num_breaks: int = 20,
+    k: int = 3,
+    noise: float = 0.25,
 ) -> list[TextContent | ImageContent]:
     """Get the histogram of a symbol in the connected DataSHIELD session
 

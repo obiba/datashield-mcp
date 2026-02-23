@@ -257,7 +257,9 @@ class BaseClient:
         logger.info(f"[{self.dscontext.id}] Mean for symbol '{symbol}': {means}")
         return means
 
-    def get_histogram(self, symbol: str, num_breaks: int = 20, k: int = 3, noise: float = 0.25) -> list[TextContent | ImageContent]:
+    def get_histogram(
+        self, symbol: str, num_breaks: int = 20, k: int = 3, noise: float = 0.25
+    ) -> list[TextContent | ImageContent]:
         """
         Get the histogram of a symbol in the remote R sessions for a given DataSHIELD session.
 
@@ -270,9 +272,7 @@ class BaseClient:
             A list of TextContent and ImageContent objects representing the histogram and metadata for the specified symbol in the remote R sessions
         """
         # Find min,max values across servers to use for consistent breaks
-        ranges = self.dscontext.session.aggregate(
-            f"histogramDS1({symbol}, method.indicator=1, k={k}, noise={noise})"
-        )
+        ranges = self.dscontext.session.aggregate(f"histogramDS1({symbol}, method.indicator=1, k={k}, noise={noise})")
         min = None
         max = None
         for server, range in ranges.items():
