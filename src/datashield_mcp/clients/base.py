@@ -285,6 +285,10 @@ class BaseClient:
                     max = server_max
         if min is None or max is None:
             raise ValueError(f"Could not determine min and max values for symbol '{symbol}' across servers")
+        # floor min to nearest integer and ceil max to nearest integer for better breaks
+        min = int(min) if min == int(min) else int(min) - 1
+        # ceil max to nearest integer
+        max = int(max) + 1 if max == int(max) else int(max) + 1
         data = self.dscontext.session.aggregate(
             f"histogramDS2({symbol}, num.breaks={num_breaks}, min={min}, max={max}, method.indicator=1, k={k}, noise={noise})"
         )
