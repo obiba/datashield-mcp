@@ -399,6 +399,7 @@ name = "datashield-mcp"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "datashield" },
     { name = "datashield-opal" },
     { name = "matplotlib" },
     { name = "mcp", extra = ["cli"] },
@@ -414,6 +415,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "datashield", specifier = ">=0.4.0" },
     { name = "datashield-opal", specifier = ">=0.3.0" },
     { name = "matplotlib", specifier = ">=3.10.8" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.26.0" },

@@ -187,7 +187,7 @@ def search_variables(ctx: Context[ServerSession, AppContext], session_id: str, q
     Returns:
         A dictionary mapping server names to the search results for variables that match the query and taxonomy filter
     Raises:
-        ValueError: If the session ID is invalid or not connected to DataSHIELD, or if the specified taxonomy does not exist
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
     """
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
