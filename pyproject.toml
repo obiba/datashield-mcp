@@ -5,8 +5,8 @@ description = "A MCP server to interact with DataSHIELD"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "datashield>=0.3.0",
-    "datashield-opal>=0.2.0",
+    "datashield>=0.4.0",
+    "datashield-opal>=0.3.0",
     "mcp[cli]>=1.26.0",
     "matplotlib>=3.10.8",
 ]
