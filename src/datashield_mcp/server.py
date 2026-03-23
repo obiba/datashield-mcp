@@ -1,4 +1,5 @@
 from collections.abc import AsyncIterator
+import argparse
 import uuid
 from typing import Any
 
@@ -575,7 +576,24 @@ def get_glm(
 
 
 def main() -> None:
-    mcp.run()
+    parser = argparse.ArgumentParser(description="DataSHIELD MCP server")
+    parser.add_argument(
+        "--transport",
+        choices=["stdio", "streamable-http", "sse"],
+        default="stdio",
+        help="Transport to use (default: stdio)",
+    )
+    parser.add_argument("--host", default="127.0.0.1", help="Host for HTTP transport (default: 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=8000, help="Port for HTTP transport (default: 8000)")
+    args = parser.parse_args()
+
+    if args.transport != "stdio":
+        mcp.settings.host = args.host
+        mcp.settings.port = args.port
+    try:
+        mcp.run(transport=args.transport)
+    except KeyboardInterrupt:
+        logger.info("Server stopped.")
 
 
 if __name__ == "__main__":
