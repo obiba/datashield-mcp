@@ -359,7 +359,6 @@ class BaseClient:
         offset: str = None,
         weights: str = None,
         data: str = None,
-        checks: bool = False,
         maxit: int = 20,
         CI: float = 0.95,
         viewIter: bool = False,
@@ -374,7 +373,6 @@ class BaseClient:
             offset: The offset variable to use for the GLM (default is None)
             weights: The weights variable to use for the GLM (default is None)
             data: The data frame to use for the GLM (default is None)
-            checks: Whether to perform checks on the input parameters (default is False)
             maxit: The maximum number of iterations for the GLM fitting process (default is 20)
             CI: The confidence interval level to use for the GLM results (default is 0.95)
             viewIter: Whether to include the iteration details in the GLM results (default is False)
@@ -476,10 +474,6 @@ class BaseClient:
             data_expr = "NULL" if data is None else repr(str(data))
             expr = f"glmDS2({formula_expr}, {family_expr}, {beta_expr}, {offset_expr}, {weights_expr}, {data_expr})"
             return self.dscontext.session.aggregate(expr)
-
-        if checks:
-            # DataSHIELD checks are handled serverside in glmDS1/glmDS2.
-            logger.info("[%s] Running get_glm with checks=True (serverside checks apply)", self.dscontext.id)
 
         study_summary_0 = _call_glm_ds1()
         servers = list(study_summary_0.keys())
