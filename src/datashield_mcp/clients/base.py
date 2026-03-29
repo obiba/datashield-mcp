@@ -461,7 +461,9 @@ class BaseClient:
             offset_expr = "NULL" if offset is None else repr(str(offset))
             data_expr = "NULL" if data is None else repr(str(data))
             expr = f"glmDS1({formula_expr}, {family_expr}, {weights_expr}, {offset_expr}, {data_expr})"
-            return self.dscontext.session.aggregate(expr)
+            rval = self.dscontext.session.aggregate(expr)
+            logger.debug(f"[{self.dscontext.id}] GLM DS1 result: {rval}")
+            return rval
 
         def _call_glm_ds2(beta_csv: str) -> dict[str, Any]:
             formula_expr = formula_text.strip()
@@ -473,7 +475,9 @@ class BaseClient:
             weights_expr = "NULL" if weights is None else repr(str(weights))
             data_expr = "NULL" if data is None else repr(str(data))
             expr = f"glmDS2({formula_expr}, {family_expr}, {beta_expr}, {offset_expr}, {weights_expr}, {data_expr})"
-            return self.dscontext.session.aggregate(expr)
+            rval = self.dscontext.session.aggregate(expr)
+            logger.debug(f"[{self.dscontext.id}] GLM DS2 result: {rval}")
+            return rval
 
         study_summary_0 = _call_glm_ds1()
         servers = list(study_summary_0.keys())
