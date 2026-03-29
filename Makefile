@@ -23,7 +23,7 @@ run-stdio:
 	uv run datashield-mcp
 
 run-http:
-	uv run datashield-mcp --transport streamable-http --host 127.0.0.1 --port 8000
+	uv run datashield-mcp --transport streamable-http --host 127.0.0.1 --port 8008
 
 test:
 	uv run pytest -vv src/tests

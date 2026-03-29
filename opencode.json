@@ -3,7 +3,7 @@
   "mcp": {
     "datashield": {
       "type": "remote",
-      "url": "http://127.0.0.1:8000/mcp",
+      "url": "http://127.0.0.1:8008/mcp",
       "enabled": true
     }
   }
