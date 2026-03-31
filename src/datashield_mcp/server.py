@@ -1,6 +1,6 @@
 from collections.abc import AsyncIterator
+import argparse
 import uuid
-import urllib.parse
 from typing import Any
 
 from contextlib import asynccontextmanager
@@ -106,6 +106,26 @@ def close(ctx: Context[ServerSession, AppContext], session_id: str) -> None:
         logger.info(f"[{session_id}] Closing DataSHIELD session.")
         dscontext.session.close()
         del ctx.request_context.lifespan_context.sessions[session_id]
+
+
+@mcp.tool()
+def get_errors(ctx: Context[ServerSession, AppContext], session_id: str) -> dict[str, list[str]]:
+    """Get errors from the connected DataSHIELD session
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+    Returns:
+        A dictionary mapping server names to lists of error messages from the remote R sessions
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    errors = dscontext.session.get_errors()
+    logger.info(f"[{session_id}] Errors from DataSHIELD session: {errors}")
+    return errors
 
 
 @mcp.tool()
@@ -526,33 +546,54 @@ def get_histogram(
     return BaseClient(dscontext).get_histogram(symbol, num_breaks=num_breaks, k=k, noise=noise)
 
 
-# FIXME - make it a tool instead?
-@mcp.resource("plot://{name}", mime_type="image/png")
-def get_plot(name: str) -> bytes:
-    """Get a saved plot
+@mcp.tool()
+def get_glm(
+    ctx: Context[ServerSession, AppContext],
+    session_id: str,
+    formula: str,
+    family: str,
+    maxit: int = 25,
+    CI: float = 0.95,
+) -> dict[str, Any]:
+    """Get the generalized linear model of a symbol in the connected DataSHIELD session
+
     Args:
-        name: The name of the plot to retrieve (should match the filename used when saving the plot, e.g. 'histogram_symbol')
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        formula: The regression formula for the GLM
+        family: The family for the GLM
+        maxit: The maximum number of iterations for the GLM (default is 25)
+        CI: The confidence interval for the GLM (default is 0.95)
     Returns:
-        The bytes of the saved plot image
+        A dictionary containing the results of the GLM
     Raises:
-        FileNotFoundError: If the specified plot does not exist
-        ValueError: If the plot name is invalid (e.g. contains path traversal characters)
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
     """
-    work_dir = Path.cwd() / ".datashield" / "work"
-    # url decode name
-    name = urllib.parse.unquote(name)
-    filename = f"{name}.png"
-    file_path = work_dir / filename
-    if not file_path.exists():
-        raise FileNotFoundError(f"Plot '{name}' not found")
-    # Make sure it is not a relative path that could escape the work directory
-    if not file_path.resolve().is_relative_to(work_dir.resolve()):
-        raise ValueError("Invalid plot name")
-    return file_path.read_bytes()
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    return BaseClient(dscontext).get_glm(formula=formula, family=family, maxit=maxit, CI=CI)
 
 
 def main() -> None:
-    mcp.run()
+    parser = argparse.ArgumentParser(description="DataSHIELD MCP server")
+    parser.add_argument(
+        "--transport",
+        choices=["stdio", "streamable-http", "sse"],
+        default="stdio",
+        help="Transport to use (default: stdio)",
+    )
+    parser.add_argument("--host", default="127.0.0.1", help="Host for HTTP transport (default: 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=8008, help="Port for HTTP transport (default: 8008)")
+    args = parser.parse_args()
+
+    if args.transport != "stdio":
+        mcp.settings.host = args.host
+        mcp.settings.port = args.port
+    try:
+        mcp.run(transport=args.transport)
+    except KeyboardInterrupt:
+        logger.info("Server stopped.")
 
 
 if __name__ == "__main__":

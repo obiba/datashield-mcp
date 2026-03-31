@@ -69,6 +69,8 @@ opencode
 
 ## Development
 
+### Built-in web interface
+
 Start the MCP server manually:
 
 ```sh
@@ -76,3 +78,44 @@ make run-dev
 ```
 
 Then go to http://localhost:6274/ and play with the web interface.
+
+### Debugging
+
+Start the MCP server as a stand-alone HTTP server:
+
+```sh
+make run-http
+```
+
+OR start it from the VSCode launcher with the configuration:
+
+```json
+  ...
+  "configurations": [
+    {
+      "name": "Debug MCP Server",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "datashield_mcp.server",
+      "args": ["--transport", "streamable-http"],
+      "console": "integratedTerminal",
+      "justMyCode": false
+    }
+  ]
+  ...
+```
+
+Then configure OpenCode to connect to this remote server:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "datashield": {
+      "type": "remote",
+      "url": "http://127.0.0.1:8008/mcp",
+      "enabled": true
+    }
+  }
+}
+```
