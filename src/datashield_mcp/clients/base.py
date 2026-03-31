@@ -435,6 +435,9 @@ class BaseClient:
                     xv = _unwrap_value(x)
                     if isinstance(xv, (int, float)):
                         result.append(float(xv))
+                    elif isinstance(xv, list):
+                        # Supports vectors encoded as nested singleton rows, e.g. [[-842], [-424], ...].
+                        result.extend(_as_float_vector(xv))
                 return result
             return []
 
