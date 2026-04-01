@@ -352,6 +352,20 @@ class BaseClient:
                 the_classes.add(c)
         return list(the_classes)
 
+    def get_correlation(self, symbol_x: str, symbol_y: str) -> dict[str, Any]:
+        """
+        Get the correlation between two symbols in the remote R sessions for a given DataSHIELD session.
+
+        Args:
+            symbol_x: The first symbol name to get the correlation of, e.g. df$var1 where df is a data.frame symbol and var1 is a numeric column in that data.frame
+            symbol_y: The second symbol name to get the correlation of, e.g. df$var2 where df is a data.frame symbol and var2 is a numeric column in that data.frame
+        Returns:
+            A dictionary mapping server names to the correlation between the specified symbols in the remote R sessions
+        """
+        correlation = self.dscontext.session.aggregate(f"corDS({symbol_x}, {symbol_y})")
+        logger.info(f"[{self.dscontext.id}] Correlation between '{symbol_x}' and '{symbol_y}': {correlation}")
+        return correlation
+
     def get_glm(
         self,
         formula: str = None,

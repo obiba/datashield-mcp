@@ -547,6 +547,27 @@ def get_histogram(
 
 
 @mcp.tool()
+def get_correlation(ctx: Context[ServerSession, AppContext], session_id: str, symbol_x: str, symbol_y: str) -> dict[str, Any]:
+    """Get the correlation between two symbols in the connected DataSHIELD session
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        symbol_x: The first symbol name to get the correlation of, e.g. df$var1 where df is a data.frame symbol and var1 is a numeric column in that data.frame
+        symbol_y: The second symbol name to get the correlation of, e.g. df$var2 where df is a data.frame symbol and var2 is a numeric column in that data.frame
+    Returns:
+        A dictionary mapping server names to the correlation result (for example, a scalar correlation value
+        or small structure) between the specified symbols in the remote R sessions
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    return BaseClient(dscontext).get_correlation(symbol_x, symbol_y)
+
+
+@mcp.tool()
 def get_glm(
     ctx: Context[ServerSession, AppContext],
     session_id: str,
@@ -560,8 +581,8 @@ def get_glm(
     Args:
         ctx: The MCP tool context, which provides access to the application context and session information
         session_id: The session ID of the connected DataSHIELD session
-        formula: The regression formula for the GLM
-        family: The family for the GLM
+        formula: The regression formula for the GLM, e.g. "df$y ~ df$x1 + df$x2" where df is a data.frame symbol and y, x1, and x2 are column names in that data.frame
+        family: The family for the GLM, e.g. "gaussian" for linear regression, "binomial" for logistic regression, "poisson" for Poisson regression, etc.
         maxit: The maximum number of iterations for the GLM (default is 25)
         CI: The confidence interval for the GLM (default is 0.95)
     Returns:
