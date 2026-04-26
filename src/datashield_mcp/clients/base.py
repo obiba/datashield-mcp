@@ -52,7 +52,7 @@ class BaseClient:
         Returns:
             A dictionary mapping server names to the length of the specified symbol in the remote R sessions
         """
-        lengths = self.dscontext.session.aggregate(f"lengthDS({symbol})")
+        lengths = self.dscontext.session.aggregate(f"lengthDS('{symbol}')")
         logger.info(f"[{self.dscontext.id}] Length for symbol '{symbol}': {lengths}")
         return lengths
 
@@ -65,7 +65,7 @@ class BaseClient:
         Returns:
             A dictionary mapping server names to the levels of the specified factor symbol in the remote R sessions
         """
-        levels = self.dscontext.session.aggregate(f"levelsDS('{symbol}')")
+        levels = self.dscontext.session.aggregate(f"levelsDS({symbol})")
         logger.info(f"[{self.dscontext.id}] Levels for symbol '{symbol}': {levels}")
         return levels
 
@@ -98,6 +98,20 @@ class BaseClient:
         frequencies = self.dscontext.session.aggregate(f"table1DDS({symbol})")
         logger.info(f"[{self.dscontext.id}] Frequencies for symbol '{symbol}': {frequencies}")
         return frequencies
+    
+    def get_crosstab(self, symbol_x: str, symbol_y: str) -> dict[str, Any]:
+        """
+        Get the crosstab frequencies of two factor or logical symbols in the remote R sessions for a given DataSHIELD session.
+
+        Args:
+            symbol_x: The first symbol name to get the crosstab frequencies of in the remote R sessions
+            symbol_y: The second symbol name to get the crosstab frequencies of in the remote R sessions
+        Returns:
+            A dictionary mapping server names to the crosstab frequencies of the specified factor or logical symbols in the remote R sessions
+        """
+        crosstab = self.dscontext.session.aggregate(f"table2DDS({symbol_x}, {symbol_y})")
+        logger.info(f"[{self.dscontext.id}] Crosstab frequencies for symbols '{symbol_x}' and '{symbol_y}': {crosstab}")
+        return crosstab
 
     def get_quantile_means(self, symbol: str) -> dict[str, Any]:
         """

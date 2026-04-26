@@ -461,6 +461,26 @@ def get_frequencies(ctx: Context[ServerSession, AppContext], session_id: str, sy
 
 
 @mcp.tool()
+def get_crosstab(ctx: Context[ServerSession, AppContext], session_id: str, symbol_x: str, symbol_y: str) -> dict[str, Any]:
+    """Get the crosstab (contingency table) between two symbols in the connected DataSHIELD session
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        symbol_x: The first symbol name (e.g., df$GENDER) to create the crosstab with in the remote R sessions
+        symbol_y: The second symbol name (e.g., df$PM_BMI_CATEGORICAL) to create the crosstab with in the remote R sessions
+    Returns:
+        A dictionary mapping server names to the crosstab results of the specified symbols in the remote R sessions
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    return BaseClient(dscontext).get_crosstab(symbol_x, symbol_y)
+
+
+@mcp.tool()
 def get_quantile_means(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, Any]:
     """Get the quantiles and means of a numeric symbol in the connected DataSHIELD session
 
