@@ -1,6 +1,14 @@
 # DataSHIELD MCP
 
-A [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server to interact with a DataSHIELD infrastructure using natural language.
+[DataSHIELD](https://datashield.org/) enables privacy-preserving federated analysis across distributed datasets, but researchers must learn specialized R commands and APIs. This creates a barrier to adoption, particularly for those less familiar with programming or DataSHIELD's specific syntax.
+
+DataSHIELD MCP ([Model Context Protocol](https://modelcontextprotocol.io/)), is an open-source tool that allows researchers to interact with DataSHIELD infrastructure using natural language through AI agents, dramatically lowering the technical barrier to federated analysis.
+
+DataSHIELD MCP is implemented as an MCP server in Python, integrating with the [datashield-python](https://github.com/datashield/datashield-python) package and an AI agent interface such as [OpenCode](https://opencode.ai/). It exposes 20+ DataSHIELD operations as structured tools, including server connection management, table/resource assignment, variable exploration (dimensions, summaries, frequencies), statistical analyses (correlation, GLM), and visualization (histograms). The system maintains session state and provides built-in [PICO methodology](https://en.wikipedia.org/wiki/PICO_process) guidance specific to federated analysis contexts.
+
+Users can perform complex DataSHIELD workflows using conversational commands rather than code. For example, asking "connect to European cohorts, assign diabetes tables, and run logistic regression for physical activity and T2D diagnosis" automatically translates to the appropriate sequence of DataSHIELD operations. The tool handles harmonization feasibility checks, disclosure control awareness, and multi-node coordination transparently.
+
+DataSHIELD MCP democratizes access to federated analysis by removing programming barriers while maintaining the privacy-preserving guarantees of DataSHIELD. This natural language interface makes federated research more accessible to epidemiologists, clinicians, and researchers who may lack extensive programming experience, potentially accelerating adoption and expanding DataSHIELD's impact.
 
 ## Installation
 
