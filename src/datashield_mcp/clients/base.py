@@ -494,8 +494,21 @@ class BaseClient:
             expr = f"glmDS2({formula_expr}, {family_expr}, {beta_expr}, {offset_expr}, {weights_expr}, {data_expr})"
             rval = self.dscontext.session.aggregate(expr)
             logger.debug(f"[{self.dscontext.id}] GLM DS2 result: {rval}")
+            # If glmDS2 output is in legacy format, convert each server payload to a stable named shape.
+            if isinstance(rval, dict):
+                normalized: dict[str, Any] = {}
+                for server, payload in rval.items():
+                    if isinstance(payload, dict) and "family" not in payload:
+                        normalized[server] = self._convert_glm2_legacy_format(payload)
+                    elif isinstance(payload, dict) and "errorMessage" not in payload and "errorMessage2" in payload:
+                        normalized_payload = dict(payload)
+                        normalized_payload["errorMessage"] = normalized_payload["errorMessage2"]
+                        normalized[server] = normalized_payload
+                    else:
+                        normalized[server] = payload
+                rval = normalized
             return rval
-
+        
         study_summary_0 = _call_glm_ds1()
         servers = list(study_summary_0.keys())
         if not servers:
@@ -666,7 +679,7 @@ class BaseClient:
 
                 numsubs_iter += int(_named_or_index(entry, "numsubs", 6) or 0)
 
-                fam = _named_or_index(entry, "family", 7)
+                fam = _named_or_index(entry, "family", 1)
                 if fam is not None:
                     family_info = fam
 
@@ -867,3 +880,83 @@ class BaseClient:
 
         logger.info("[%s] GLM completed in %s iteration(s)", self.dscontext.id, iteration_count)
         return result
+
+    def _convert_glm2_legacy_format(self, rval: dict[str, Any]) -> dict[str, Any]:
+        # Convert glmDS2 legacy list output (R-like typed payload) to a plain named dict.
+        def _r_to_python(obj: Any) -> Any:
+            if isinstance(obj, dict) and "value" in obj:
+                raw_value = obj.get("value")
+                attrs = obj.get("attributes", {}) if isinstance(obj.get("attributes", {}), dict) else {}
+                parsed = _r_to_python(raw_value)
+
+                # R matrices are flattened in column-major order; reshape into row-major Python nested lists.
+                dim = attrs.get("dim")
+                if isinstance(dim, dict) and "value" in dim:
+                    dims = _r_to_python(dim.get("value"))
+                    if isinstance(dims, list) and len(dims) == 2 and isinstance(parsed, list):
+                        nrow, ncol = int(dims[0]), int(dims[1])
+                        if nrow > 0 and ncol > 0 and len(parsed) == nrow * ncol:
+                            return [[parsed[r + c * nrow] for c in range(ncol)] for r in range(nrow)]
+
+                value_type = obj.get("type")
+                if value_type in {"character", "integer", "double", "logical"} and isinstance(parsed, list):
+                    return parsed[0] if len(parsed) == 1 else parsed
+                return parsed
+
+            if isinstance(obj, list):
+                return [_r_to_python(item) for item in obj]
+
+            return obj
+
+        # Already-normalized payloads can pass through directly.
+        if "family" in rval and "info.matrix" in rval and "score.vect" in rval:
+            normalized = dict(rval)
+            if "errorMessage" not in normalized and "errorMessage2" in normalized:
+                normalized["errorMessage"] = normalized["errorMessage2"]
+            return {
+                "family": normalized.get("family"),
+                "info.matrix": normalized.get("info.matrix"),
+                "score.vect": normalized.get("score.vect"),
+                "numsubs": normalized.get("numsubs"),
+                "dev": normalized.get("dev"),
+                "Nvalid": normalized.get("Nvalid"),
+                "Nmissing": normalized.get("Nmissing"),
+                "Ntotal": normalized.get("Ntotal"),
+                "disclosure.risk": normalized.get("disclosure.risk"),
+                "errorMessage": normalized.get("errorMessage"),
+            }
+
+        names = []
+        values = []
+        attrs = rval.get("attributes") if isinstance(rval.get("attributes"), dict) else {}
+        names_obj = attrs.get("names") if isinstance(attrs, dict) else None
+        if isinstance(names_obj, dict):
+            parsed_names = _r_to_python(names_obj)
+            if isinstance(parsed_names, list):
+                names = [str(x) for x in parsed_names]
+
+        parsed_values = rval.get("value")
+        if isinstance(parsed_values, list):
+            values = parsed_values
+
+        mapped: dict[str, Any] = {}
+        for idx, name in enumerate(names):
+            if idx < len(values):
+                mapped[name] = _r_to_python(values[idx])
+
+        family_value = mapped.get("family")
+        if isinstance(family_value, list) and family_value:
+            family_value = family_value[0]
+
+        return {
+            "family": family_value,
+            "info.matrix": mapped.get("info.matrix"),
+            "score.vect": mapped.get("score.vect"),
+            "numsubs": mapped.get("numsubs"),
+            "dev": mapped.get("dev"),
+            "Nvalid": mapped.get("Nvalid"),
+            "Nmissing": mapped.get("Nmissing"),
+            "Ntotal": mapped.get("Ntotal"),
+            "disclosure.risk": mapped.get("disclosure.risk"),
+            "errorMessage": mapped.get("errorMessage") or mapped.get("errorMessage2"),
+        }

@@ -1,4 +1,6 @@
+import json
 from dataclasses import dataclass
+from pathlib import Path
 
 import pytest
 
@@ -131,3 +133,39 @@ def test_get_glm_parses_named_num_par_glm_shape():
     assert result is not None
     assert len(result["coefficients"]) == 2
     assert result["coefficients"][0]["name"] == "(Intercept)"
+
+
+def test_convert_glm2_legacy_format_matches_new_format_fixture():
+    client = BaseClient(DummyContext("test", MockSession()))
+
+    fixtures_dir = Path(__file__).parent / "data"
+    legacy = json.loads((fixtures_dir / "glm2-legacy-out.json").read_text(encoding="utf-8"))
+    new = json.loads((fixtures_dir / "glm2-out.json").read_text(encoding="utf-8"))
+
+    converted = client._convert_glm2_legacy_format(legacy["server1"])
+
+    expected = dict(new["server1"])
+    expected["errorMessage"] = expected.pop("errorMessage2")
+
+    def assert_nested_close(actual, expected_value):
+        if isinstance(expected_value, dict):
+            assert isinstance(actual, dict)
+            assert set(actual.keys()) == set(expected_value.keys())
+            for key in expected_value:
+                assert_nested_close(actual[key], expected_value[key])
+            return
+
+        if isinstance(expected_value, list):
+            assert isinstance(actual, list)
+            assert len(actual) == len(expected_value)
+            for actual_item, expected_item in zip(actual, expected_value):
+                assert_nested_close(actual_item, expected_item)
+            return
+
+        if isinstance(expected_value, (int, float)):
+            assert actual == pytest.approx(expected_value, rel=1e-8, abs=1e-8)
+            return
+
+        assert actual == expected_value
+
+    assert_nested_close(converted, expected)
