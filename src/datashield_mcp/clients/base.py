@@ -98,7 +98,7 @@ class BaseClient:
         frequencies = self.dscontext.session.aggregate(f"table1DDS({symbol})")
         logger.info(f"[{self.dscontext.id}] Frequencies for symbol '{symbol}': {frequencies}")
         return frequencies
-    
+
     def get_crosstab(self, symbol_x: str, symbol_y: str) -> dict[str, Any]:
         """
         Get the crosstab frequencies of two factor or logical symbols in the remote R sessions for a given DataSHIELD session.
@@ -522,7 +522,7 @@ class BaseClient:
                         normalized[server] = payload
                 rval = normalized
             return rval
-        
+
         study_summary_0 = _call_glm_ds1()
         servers = list(study_summary_0.keys())
         if not servers:

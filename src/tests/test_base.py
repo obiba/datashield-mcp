@@ -29,7 +29,7 @@ class TestClass:
         try:
             stats_service = BaseClient(self.dscontext)
             lengths = stats_service.get_length("df")
-            assert lengths == {"server1": 2163}
+            assert lengths == {"server1": 11}  # 11 columns in the df table
         except DSError as e:
             pytest.fail(f"get_length raised an exception: {e} {self.dscontext.session.get_errors()}")
 
@@ -38,7 +38,7 @@ class TestClass:
         try:
             stats_service = BaseClient(self.dscontext)
             lengths = stats_service.get_length("df$LAB_HDL")
-            assert lengths == {"server1": 1}  # FIXME: This should be 2163!
+            assert lengths == {"server1": 2163}
         except DSError as e:
             pytest.fail(f"get_length raised an exception: {e} {self.dscontext.session.get_errors()}")
 
@@ -145,7 +145,7 @@ class TestClass:
             summary = stats_service.get_summary("df$LAB_HDL")
             assert summary == {
                 "server1": {
-                    "length": 1,
+                    "length": 2163,
                     "quantile_means": [
                         0.87524,
                         1.0474,
@@ -179,9 +179,9 @@ class TestClass:
                             },
                         ],
                     },
-                    "length": 1,
+                    "length": 2163,
                     "levels": {
-                        "Levels": None,
+                        "Levels": ['0', '1'],
                         "ValidityMessage": "VALID ANALYSIS",
                     },
                     "validity": True,

@@ -158,7 +158,7 @@ def test_convert_glm2_legacy_format_matches_new_format_fixture():
         if isinstance(expected_value, list):
             assert isinstance(actual, list)
             assert len(actual) == len(expected_value)
-            for actual_item, expected_item in zip(actual, expected_value):
+            for actual_item, expected_item in zip(actual, expected_value, strict=True):
                 assert_nested_close(actual_item, expected_item)
             return
 
