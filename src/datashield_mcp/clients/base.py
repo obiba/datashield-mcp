@@ -313,9 +313,11 @@ class BaseClient:
             logger.info(f"[{self.dscontext.id}] Histogram for symbol '{symbol}' on server '{server}': {hist}")
             breaks = hist["value"][0]["value"][0]["value"]
             counts = hist["value"][0]["value"][1]["value"]
+            # Calculate bin width from breaks
+            bin_width = breaks[1] - breaks[0] if len(breaks) > 1 else 1
             # random color
             color = (random.random(), random.random(), random.random(), 0.5)
-            ax.bar(breaks[1:], counts, width=1, edgecolor="black", linewidth=0.5, alpha=0.5, label=server, color=color)
+            ax.bar(breaks[1:], counts, width=bin_width, edgecolor="black", linewidth=0.5, alpha=0.5, label=server, color=color)
         ax.set_xlabel("Value")
         ax.set_ylabel("Frequency")
         ax.set_title(f"Histogram of {symbol}")
