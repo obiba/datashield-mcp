@@ -11,7 +11,7 @@ from mcp.server.session import ServerSession
 from datashield import DSConfig, DSSession, DSLoginBuilder
 from datashield_mcp.models import AppContext, DSContext
 from datashield_mcp.logs import logger
-from datashield_mcp.clients.base import BaseClient
+from datashield_mcp.clients.base import StatsClient, PlotsClient, ModelsClient
 
 
 @asynccontextmanager
@@ -381,7 +381,7 @@ def get_classes(ctx: Context[ServerSession, AppContext], session_id: str, symbol
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return BaseClient(dscontext).get_classes(symbol)
+    return StatsClient(dscontext).get_classes(symbol)
 
 
 @mcp.tool()
@@ -400,7 +400,7 @@ def get_length(ctx: Context[ServerSession, AppContext], session_id: str, symbol:
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return BaseClient(dscontext).get_length(symbol)
+    return StatsClient(dscontext).get_length(symbol)
 
 
 @mcp.tool()
@@ -419,7 +419,7 @@ def get_levels(ctx: Context[ServerSession, AppContext], session_id: str, symbol:
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return BaseClient(dscontext).get_levels(symbol)
+    return StatsClient(dscontext).get_levels(symbol)
 
 
 @mcp.tool()
@@ -438,7 +438,7 @@ def get_dimensions(ctx: Context[ServerSession, AppContext], session_id: str, sym
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return BaseClient(dscontext).get_dimensions(symbol)
+    return StatsClient(dscontext).get_dimensions(symbol)
 
 
 @mcp.tool()
@@ -457,11 +457,13 @@ def get_frequencies(ctx: Context[ServerSession, AppContext], session_id: str, sy
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return BaseClient(dscontext).get_frequencies(symbol)
+    return StatsClient(dscontext).get_frequencies(symbol)
 
 
 @mcp.tool()
-def get_crosstab(ctx: Context[ServerSession, AppContext], session_id: str, symbol_x: str, symbol_y: str) -> dict[str, Any]:
+def get_crosstab(
+    ctx: Context[ServerSession, AppContext], session_id: str, symbol_x: str, symbol_y: str
+) -> dict[str, Any]:
     """Get the crosstab (contingency table) between two symbols in the connected DataSHIELD session
 
     Args:
@@ -477,7 +479,7 @@ def get_crosstab(ctx: Context[ServerSession, AppContext], session_id: str, symbo
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return BaseClient(dscontext).get_crosstab(symbol_x, symbol_y)
+    return StatsClient(dscontext).get_crosstab(symbol_x, symbol_y)
 
 
 @mcp.tool()
@@ -496,7 +498,7 @@ def get_quantile_means(ctx: Context[ServerSession, AppContext], session_id: str,
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return BaseClient(dscontext).get_quantile_means(symbol)
+    return StatsClient(dscontext).get_quantile_means(symbol)
 
 
 @mcp.tool()
@@ -515,7 +517,7 @@ def get_summary(ctx: Context[ServerSession, AppContext], session_id: str, symbol
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return BaseClient(dscontext).get_summary(symbol)
+    return StatsClient(dscontext).get_summary(symbol)
 
 
 @mcp.tool()
@@ -534,7 +536,7 @@ def get_mean(ctx: Context[ServerSession, AppContext], session_id: str, symbol: s
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return BaseClient(dscontext).get_mean(symbol)
+    return StatsClient(dscontext).get_mean(symbol)
 
 
 @mcp.tool()
@@ -563,11 +565,13 @@ def get_histogram(
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return BaseClient(dscontext).get_histogram(symbol, num_breaks=num_breaks, k=k, noise=noise)
+    return PlotsClient(dscontext).get_histogram(symbol, num_breaks=num_breaks, k=k, noise=noise)
 
 
 @mcp.tool()
-def get_correlation(ctx: Context[ServerSession, AppContext], session_id: str, symbol_x: str, symbol_y: str) -> dict[str, Any]:
+def get_correlation(
+    ctx: Context[ServerSession, AppContext], session_id: str, symbol_x: str, symbol_y: str
+) -> dict[str, Any]:
     """Get the correlation between two symbols in the connected DataSHIELD session
 
     Args:
@@ -584,7 +588,7 @@ def get_correlation(ctx: Context[ServerSession, AppContext], session_id: str, sy
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return BaseClient(dscontext).get_correlation(symbol_x, symbol_y)
+    return ModelsClient(dscontext).get_correlation(symbol_x, symbol_y)
 
 
 @mcp.tool()
@@ -613,7 +617,7 @@ def get_glm(
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return BaseClient(dscontext).get_glm(formula=formula, family=family, maxit=maxit, CI=CI)
+    return ModelsClient(dscontext).get_glm(formula=formula, family=family, maxit=maxit, CI=CI)
 
 
 def main() -> None:
