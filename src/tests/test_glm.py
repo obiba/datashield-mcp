@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from datashield_mcp.clients.base import BaseClient
+from datashield_mcp.clients.base import ModelsClient
 
 
 @dataclass
@@ -88,20 +88,20 @@ class MockSessionNamedMeta(MockSession):
 
 
 def test_get_glm_requires_formula():
-    client = BaseClient(DummyContext("test", MockSession()))
+    client = ModelsClient(DummyContext("test", MockSession()))
     with pytest.raises(ValueError, match="regression formula"):
         client.get_glm(formula=None, family="gaussian")
 
 
 def test_get_glm_requires_family():
-    client = BaseClient(DummyContext("test", MockSession()))
+    client = ModelsClient(DummyContext("test", MockSession()))
     with pytest.raises(ValueError, match="family"):
         client.get_glm(formula="y ~ x", family=None)
 
 
 def test_get_glm_runs_and_returns_expected_shape():
     session = MockSession()
-    client = BaseClient(DummyContext("test", session))
+    client = ModelsClient(DummyContext("test", session))
 
     result = client.get_glm(formula="y ~ x", family="gaussian", maxit=5, CI=0.95)
 
@@ -126,7 +126,7 @@ def test_get_glm_runs_and_returns_expected_shape():
 
 def test_get_glm_parses_named_num_par_glm_shape():
     session = MockSessionNamedMeta()
-    client = BaseClient(DummyContext("test", session))
+    client = ModelsClient(DummyContext("test", session))
 
     result = client.get_glm(formula="y ~ x", family="gaussian", maxit=5, CI=0.95)
 
@@ -136,7 +136,7 @@ def test_get_glm_parses_named_num_par_glm_shape():
 
 
 def test_convert_glm2_legacy_format_matches_new_format_fixture():
-    client = BaseClient(DummyContext("test", MockSession()))
+    client = ModelsClient(DummyContext("test", MockSession()))
 
     fixtures_dir = Path(__file__).parent / "data"
     legacy = json.loads((fixtures_dir / "glm2-legacy-out.json").read_text(encoding="utf-8"))
