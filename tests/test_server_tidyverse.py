@@ -9,6 +9,9 @@ from datashield_mcp.server import (
     tidyverse_arrange,
     tidyverse_rename,
     tidyverse_slice,
+    tidyverse_group_by,
+    tidyverse_ungroup,
+    tidyverse_group_keys,
 )
 
 
@@ -58,6 +61,53 @@ def test_tidyverse_filter():
     
     assert result == {"server1": ["mtcars", "subset"]}
     mock_dscontext.session.ls.assert_called_once()
+
+
+def test_tidyverse_group_by():
+    """Test tidyverse_group_by tool calls TidyverseClient.group_by."""
+    mock_ctx, mock_dscontext = create_mock_context()
+    
+    result = tidyverse_group_by(
+        ctx=mock_ctx,
+        session_id="test-session",
+        df_name="mtcars",
+        tidy_expr="cyl, gear",
+        newobj="grouped"
+    )
+    
+    assert result == {"server1": ["mtcars", "subset"]}
+    mock_dscontext.session.ls.assert_called_once()
+
+
+def test_tidyverse_ungroup():
+    """Test tidyverse_ungroup tool calls TidyverseClient.ungroup."""
+    mock_ctx, mock_dscontext = create_mock_context()
+    
+    result = tidyverse_ungroup(
+        ctx=mock_ctx,
+        session_id="test-session",
+        df_name="grouped_mtcars",
+        newobj="ungrouped"
+    )
+    
+    assert result == {"server1": ["mtcars", "subset"]}
+    mock_dscontext.session.ls.assert_called_once()
+
+
+def test_tidyverse_group_keys():
+    """Test tidyverse_group_keys tool calls TidyverseClient.group_keys."""
+    mock_ctx, mock_dscontext = create_mock_context()
+    
+    result = tidyverse_group_keys(
+        ctx=mock_ctx,
+        session_id="test-session",
+        df_name="grouped_mtcars",
+        newobj="keys"
+    )
+    
+    assert result == {"server1": ["mtcars", "subset"]}
+    mock_dscontext.session.ls.assert_called_once()
+
 
 
 def test_tidyverse_tool_invalid_session():

@@ -858,6 +858,109 @@ def tidyverse_slice(
     return dscontext.session.ls()
 
 
+# Grouping Operations
+@mcp.tool()
+def tidyverse_group_by(
+    ctx: Context[ServerSession, AppContext],
+    session_id: str,
+    df_name: str,
+    tidy_expr: str,
+    newobj: str,
+) -> dict[str, list[str]]:
+    """Group a DataSHIELD data frame by one or more variables
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        df_name: Name of server-side data frame to group
+        tidy_expr: Variables to group by (e.g., "cyl" or "cyl, gear")
+        newobj: Name for the grouped data frame
+
+    Returns:
+        A dictionary mapping server names to lists of available symbols after grouping
+
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    
+    TidyverseClient(dscontext).group_by(
+        df_name=df_name,
+        tidy_expr=tidy_expr,
+        newobj=newobj
+    )
+    
+    return dscontext.session.ls()
+
+
+@mcp.tool()
+def tidyverse_ungroup(
+    ctx: Context[ServerSession, AppContext],
+    session_id: str,
+    df_name: str,
+    newobj: str,
+) -> dict[str, list[str]]:
+    """Remove grouping from a grouped DataSHIELD data frame
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        df_name: Name of server-side grouped data frame
+        newobj: Name for the ungrouped data frame
+
+    Returns:
+        A dictionary mapping server names to lists of available symbols after ungrouping
+
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    
+    TidyverseClient(dscontext).ungroup(
+        df_name=df_name,
+        newobj=newobj
+    )
+    
+    return dscontext.session.ls()
+
+
+@mcp.tool()
+def tidyverse_group_keys(
+    ctx: Context[ServerSession, AppContext],
+    session_id: str,
+    df_name: str,
+    newobj: str,
+) -> dict[str, list[str]]:
+    """Get the grouping keys from a grouped DataSHIELD data frame
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        df_name: Name of server-side grouped data frame
+        newobj: Name for the data frame containing group keys
+
+    Returns:
+        A dictionary mapping server names to lists of available symbols after extracting keys
+
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    
+    TidyverseClient(dscontext).group_keys(
+        df_name=df_name,
+        newobj=newobj
+    )
+    
+    return dscontext.session.ls()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="DataSHIELD MCP server")
     parser.add_argument(
