@@ -12,6 +12,9 @@ from datashield_mcp.server import (
     tidyverse_group_by,
     tidyverse_ungroup,
     tidyverse_group_keys,
+    tidyverse_distinct,
+    tidyverse_bind_rows,
+    tidyverse_bind_cols,
 )
 
 
@@ -61,6 +64,69 @@ def test_tidyverse_filter():
     
     assert result == {"server1": ["mtcars", "subset"]}
     mock_dscontext.session.ls.assert_called_once()
+
+
+def test_tidyverse_distinct():
+    """Test tidyverse_distinct tool calls TidyverseClient.distinct."""
+    mock_ctx, mock_dscontext = create_mock_context()
+    
+    result = tidyverse_distinct(
+        ctx=mock_ctx,
+        session_id="test-session",
+        df_name="mtcars",
+        tidy_expr="cyl, gear",
+        newobj="unique"
+    )
+    
+    assert result == {"server1": ["mtcars", "subset"]}
+    mock_dscontext.session.ls.assert_called_once()
+
+
+def test_tidyverse_distinct_all_columns():
+    """Test tidyverse_distinct with None (all columns)."""
+    mock_ctx, mock_dscontext = create_mock_context()
+    
+    result = tidyverse_distinct(
+        ctx=mock_ctx,
+        session_id="test-session",
+        df_name="mtcars",
+        tidy_expr=None,
+        newobj="unique"
+    )
+    
+    assert result == {"server1": ["mtcars", "subset"]}
+    mock_dscontext.session.ls.assert_called_once()
+
+
+def test_tidyverse_bind_rows():
+    """Test tidyverse_bind_rows tool calls TidyverseClient.bind_rows."""
+    mock_ctx, mock_dscontext = create_mock_context()
+    
+    result = tidyverse_bind_rows(
+        ctx=mock_ctx,
+        session_id="test-session",
+        df_names=["df1", "df2", "df3"],
+        newobj="combined"
+    )
+    
+    assert result == {"server1": ["mtcars", "subset"]}
+    mock_dscontext.session.ls.assert_called_once()
+
+
+def test_tidyverse_bind_cols():
+    """Test tidyverse_bind_cols tool calls TidyverseClient.bind_cols."""
+    mock_ctx, mock_dscontext = create_mock_context()
+    
+    result = tidyverse_bind_cols(
+        ctx=mock_ctx,
+        session_id="test-session",
+        df_names=["df1", "df2"],
+        newobj="combined"
+    )
+    
+    assert result == {"server1": ["mtcars", "subset"]}
+    mock_dscontext.session.ls.assert_called_once()
+
 
 
 def test_tidyverse_group_by():
