@@ -81,3 +81,35 @@ class TidyverseClient:
         
         logger.info(f"[{self.dscontext.id}] Executing filter: {call_expr}")
         self.dscontext.session.assign(newobj, call_expr)
+    
+    def mutate(
+        self,
+        df_name: str,
+        tidy_expr: str,
+        newobj: str
+    ) -> None:
+        """Create or modify columns.
+        
+        DataSHIELD Python implementation of dplyr::mutate.
+        
+        Args:
+            df_name: Name of server-side data frame or tibble
+            tidy_expr: Expression(s) for creating/modifying columns
+                      (e.g., "new_col = old_col * 2" or "a = b + 1, c = d - 1")
+            newobj: Name for new server-side data frame
+            
+        Example:
+            >>> client.mutate(
+            ...     df_name="mtcars",
+            ...     tidy_expr="mpg_squared = mpg ^ 2, hp_kw = hp * 0.746",
+            ...     newobj="transformed"
+            ... )
+        """
+        call_expr = make_serverside_call(
+            "mutateDS",
+            tidy_expr,
+            [df_name]
+        )
+        
+        logger.info(f"[{self.dscontext.id}] Executing mutate: {call_expr}")
+        self.dscontext.session.assign(newobj, call_expr)
