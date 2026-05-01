@@ -296,3 +296,98 @@ class TidyverseClient:
         
         logger.info(f"[{self.dscontext.id}] Executing group_keys: {call_expr}")
         self.dscontext.session.assign(newobj, call_expr)
+    
+    def distinct(
+        self,
+        df_name: str,
+        tidy_expr: str | None,
+        newobj: str
+    ) -> None:
+        """Select distinct/unique rows.
+        
+        DataSHIELD Python implementation of dplyr::distinct.
+        
+        Args:
+            df_name: Name of server-side data frame or tibble
+            tidy_expr: Optional column specification. If None, uses all columns.
+                      (e.g., None for all columns, or "cyl, gear" for specific columns)
+            newobj: Name for new server-side data frame
+            
+        Example:
+            >>> # All columns
+            >>> client.distinct(
+            ...     df_name="mtcars",
+            ...     tidy_expr=None,
+            ...     newobj="unique"
+            ... )
+            >>> # Specific columns
+            >>> client.distinct(
+            ...     df_name="mtcars",
+            ...     tidy_expr="cyl, gear",
+            ...     newobj="unique"
+            ... )
+        """
+        call_expr = make_serverside_call(
+            "distinctDS",
+            tidy_expr,
+            [df_name]
+        )
+        
+        logger.info(f"[{self.dscontext.id}] Executing distinct: {call_expr}")
+        self.dscontext.session.assign(newobj, call_expr)
+    
+    def bind_rows(
+        self,
+        df_names: list[str],
+        newobj: str
+    ) -> None:
+        """Bind multiple data frames by row.
+        
+        DataSHIELD Python implementation of dplyr::bind_rows.
+        
+        Args:
+            df_names: List of server-side data frame names to bind
+            newobj: Name for new server-side data frame
+            
+        Example:
+            >>> client.bind_rows(
+            ...     df_names=["df1", "df2", "df3"],
+            ...     newobj="combined"
+            ... )
+        """
+        call_expr = make_serverside_call(
+            "bindRowsDS",
+            None,
+            df_names
+        )
+        
+        logger.info(f"[{self.dscontext.id}] Executing bind_rows: {call_expr}")
+        self.dscontext.session.assign(newobj, call_expr)
+    
+    def bind_cols(
+        self,
+        df_names: list[str],
+        newobj: str
+    ) -> None:
+        """Bind multiple data frames by column.
+        
+        DataSHIELD Python implementation of dplyr::bind_cols.
+        
+        Args:
+            df_names: List of server-side data frame names to bind
+            newobj: Name for new server-side data frame
+            
+        Example:
+            >>> client.bind_cols(
+            ...     df_names=["df1", "df2"],
+            ...     newobj="combined"
+            ... )
+        """
+        call_expr = make_serverside_call(
+            "bindColsDS",
+            None,
+            df_names
+        )
+        
+        logger.info(f"[{self.dscontext.id}] Executing bind_cols: {call_expr}")
+        self.dscontext.session.assign(newobj, call_expr)

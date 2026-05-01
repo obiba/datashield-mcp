@@ -338,3 +338,78 @@ def test_group_keys(mock_dscontext):
     call_expr = call_args[0][1]
     assert "groupKeysDS" in call_expr
     assert "grouped_mtcars" in call_expr
+
+
+def test_distinct_all_columns(mock_dscontext):
+    """Test getting distinct rows across all columns."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.distinct(
+        df_name="mtcars",
+        tidy_expr=None,
+        newobj="unique"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    assert call_args[0][0] == "unique"
+    call_expr = call_args[0][1]
+    assert "distinctDS" in call_expr
+    assert "mtcars" in call_expr
+
+
+def test_distinct_specific_columns(mock_dscontext):
+    """Test getting distinct rows for specific columns."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.distinct(
+        df_name="mtcars",
+        tidy_expr="cyl, gear",
+        newobj="unique"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    call_expr = call_args[0][1]
+    assert "distinctDS" in call_expr
+
+
+def test_bind_rows(mock_dscontext):
+    """Test binding rows from multiple dataframes."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.bind_rows(
+        df_names=["df1", "df2", "df3"],
+        newobj="combined"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    assert call_args[0][0] == "combined"
+    call_expr = call_args[0][1]
+    assert "bindRowsDS" in call_expr
+    assert "df1" in call_expr
+    assert "df2" in call_expr
+    assert "df3" in call_expr
+
+
+def test_bind_cols(mock_dscontext):
+    """Test binding columns from multiple dataframes."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.bind_cols(
+        df_names=["df1", "df2"],
+        newobj="combined"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    assert call_args[0][0] == "combined"
+    call_expr = call_args[0][1]
+    assert "bindColsDS" in call_expr
+    assert "df1" in call_expr
+    assert "df2" in call_expr
