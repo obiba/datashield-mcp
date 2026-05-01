@@ -413,3 +413,58 @@ def test_bind_cols(mock_dscontext):
     assert "bindColsDS" in call_expr
     assert "df1" in call_expr
     assert "df2" in call_expr
+
+
+def test_if_else_basic(mock_dscontext):
+    """Test basic if_else conditional."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.if_else(
+        condition="mpg > 20",
+        true_value="'high'",
+        false_value="'low'",
+        newobj="mpg_category"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    assert call_args[0][0] == "mpg_category"
+    call_expr = call_args[0][1]
+    assert "ifElseDS" in call_expr
+
+
+def test_if_else_with_missing(mock_dscontext):
+    """Test if_else with missing value handling."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.if_else(
+        condition="mpg > 20",
+        true_value="1",
+        false_value="0",
+        missing_value="NA",
+        newobj="mpg_flag"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    call_expr = call_args[0][1]
+    assert "ifElseDS" in call_expr
+
+
+def test_case_when_basic(mock_dscontext):
+    """Test basic case_when with multiple conditions."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.case_when(
+        cases="mpg > 25 ~ 'excellent', mpg > 20 ~ 'good', TRUE ~ 'average'",
+        newobj="mpg_rating"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    assert call_args[0][0] == "mpg_rating"
+    call_expr = call_args[0][1]
+    assert "caseWhenDS" in call_expr

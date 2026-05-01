@@ -391,3 +391,77 @@ class TidyverseClient:
         
         logger.info(f"[{self.dscontext.id}] Executing bind_cols: {call_expr}")
         self.dscontext.session.assign(newobj, call_expr)
+    
+    def if_else(
+        self,
+        condition: str,
+        true_value: str,
+        false_value: str,
+        missing_value: str | None = None,
+        newobj: str = ""
+    ) -> None:
+        """Vectorized if-else statement.
+        
+        DataSHIELD Python implementation of dplyr::if_else.
+        
+        Args:
+            condition: Logical condition expression
+            true_value: Value when condition is TRUE
+            false_value: Value when condition is FALSE
+            missing_value: Optional value for NA/missing (defaults to None)
+            newobj: Name for new server-side object
+            
+        Example:
+            >>> client.if_else(
+            ...     condition="mpg > 20",
+            ...     true_value="'high'",
+            ...     false_value="'low'",
+            ...     newobj="mpg_category"
+            ... )
+        """
+        # Build argument list based on whether missing_value is provided
+        args = [condition, true_value, false_value]
+        if missing_value is not None:
+            args.append(missing_value)
+        
+        # Encode each argument as a tidy expression
+        # Join them with commas to create a single expression string
+        tidy_expr = ", ".join(args)
+        
+        call_expr = make_serverside_call(
+            "ifElseDS",
+            tidy_expr,
+            []
+        )
+        
+        logger.info(f"[{self.dscontext.id}] Executing if_else: {call_expr}")
+        self.dscontext.session.assign(newobj, call_expr)
+    
+    def case_when(
+        self,
+        cases: str,
+        newobj: str
+    ) -> None:
+        """Vectorized multi-way if-else (case statement).
+        
+        DataSHIELD Python implementation of dplyr::case_when.
+        
+        Args:
+            cases: Case expressions in the form "condition ~ value, condition ~ value, ..."
+                  (e.g., "mpg > 25 ~ 'excellent', mpg > 20 ~ 'good', TRUE ~ 'average'")
+            newobj: Name for new server-side object
+            
+        Example:
+            >>> client.case_when(
+            ...     cases="mpg > 25 ~ 'excellent', mpg > 20 ~ 'good', TRUE ~ 'average'",
+            ...     newobj="mpg_rating"
+            ... )
+        """
+        call_expr = make_serverside_call(
+            "caseWhenDS",
+            cases,
+            []
+        )
+        
+        logger.info(f"[{self.dscontext.id}] Executing case_when: {call_expr}")
+        self.dscontext.session.assign(newobj, call_expr)
