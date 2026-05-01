@@ -1029,8 +1029,8 @@ def tidyverse_if_else(
     condition: str,
     true_value: str,
     false_value: str,
+    newobj: str,
     missing_value: str | None = None,
-    newobj: str = "",
 ) -> dict[str, list[str]]:
     """Create a conditional vector using if-else logic in a DataSHIELD session
 

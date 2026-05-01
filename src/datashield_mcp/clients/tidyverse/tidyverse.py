@@ -290,7 +290,7 @@ class TidyverseClient:
         self.dscontext.session.assign(newobj, call_expr)
 
     def if_else(
-        self, condition: str, true_value: str, false_value: str, missing_value: str | None = None, newobj: str = ""
+        self, condition: str, true_value: str, false_value: str, newobj: str, missing_value: str | None = None
     ) -> None:
         """Vectorized if-else statement.
 

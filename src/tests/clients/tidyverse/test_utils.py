@@ -1,6 +1,13 @@
 """Tests for tidyverse utility functions."""
 
-from datashield_mcp.clients.tidyverse.utils import get_encode_dictionary, encode_tidy_eval
+import pytest
+
+from datashield_mcp.clients.tidyverse.utils import (
+    encode_tidy_eval,
+    get_encode_dictionary,
+    make_serverside_call,
+    validate_symbol_name,
+)
 
 
 def test_get_encode_dictionary():
@@ -52,3 +59,60 @@ def test_encode_tidy_eval_preserves_alphanumeric():
     encoded = encode_tidy_eval(expr)
 
     assert encoded == "abc123XYZ"
+
+
+# ---------------------------------------------------------------------------
+# validate_symbol_name
+# ---------------------------------------------------------------------------
+
+class TestValidateSymbolName:
+    def test_valid_names(self):
+        for name in ["D", "ds1", "my.data", "study_data", "A1.b_C"]:
+            validate_symbol_name(name)  # must not raise
+
+    def test_rejects_single_quote(self):
+        with pytest.raises(ValueError):
+            validate_symbol_name("ds'injection")
+
+    def test_rejects_backslash(self):
+        with pytest.raises(ValueError):
+            validate_symbol_name("ds\\n")
+
+    def test_rejects_starts_with_digit(self):
+        with pytest.raises(ValueError):
+            validate_symbol_name("1bad")
+
+    def test_rejects_empty_string(self):
+        with pytest.raises(ValueError):
+            validate_symbol_name("")
+
+    def test_rejects_space(self):
+        with pytest.raises(ValueError):
+            validate_symbol_name("bad name")
+
+    def test_rejects_semicolon(self):
+        with pytest.raises(ValueError):
+            validate_symbol_name("bad;name")
+
+
+# ---------------------------------------------------------------------------
+# make_serverside_call – injection guard
+# ---------------------------------------------------------------------------
+
+class TestMakeServersideCallInjection:
+    def test_valid_df_name(self):
+        result = make_serverside_call("selectDS", None, ["myDf"])
+        assert result == "selectDS('myDf')"
+
+    def test_raises_on_quote_in_df_name(self):
+        with pytest.raises(ValueError):
+            make_serverside_call("selectDS", None, ["df'DROP"])
+
+    def test_raises_on_backslash_in_df_name(self):
+        with pytest.raises(ValueError):
+            make_serverside_call("selectDS", None, ["df\\x"])
+
+    def test_multiple_df_names_all_validated(self):
+        # first name valid, second name invalid
+        with pytest.raises(ValueError):
+            make_serverside_call("bindRowsDS", None, ["good", "bad'name"])

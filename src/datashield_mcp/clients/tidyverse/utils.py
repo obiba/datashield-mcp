@@ -1,5 +1,27 @@
 """Utility functions for tidyverse client operations."""
 
+import re
+
+# Valid R symbol names: start with a letter or dot-not-followed-by-digit,
+# then letters, digits, dots, or underscores.  We restrict to the safe subset
+# that covers all realistic DataSHIELD symbol names (letters, digits, . and _,
+# must begin with a letter).
+_SYMBOL_NAME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9._]*$")
+
+
+def validate_symbol_name(name: str) -> None:
+    """Validate that *name* is a safe R symbol name.
+
+    Raises:
+        ValueError: if *name* contains characters outside ``[a-zA-Z0-9._]``
+            or does not start with a letter.
+    """
+    if not _SYMBOL_NAME_RE.match(name):
+        raise ValueError(
+            f"Invalid symbol name {name!r}: only letters, digits, '.' and '_' are "
+            "allowed, and the name must start with a letter."
+        )
+
 
 def get_encode_dictionary() -> dict[str, list[str]]:
     """Generate an encoding dictionary for special characters.
@@ -92,6 +114,7 @@ def make_serverside_call(fun_name: str, tidy_expr: str | None, other_args: list)
         elif isinstance(arg, bool):
             args.append("TRUE" if arg else "FALSE")
         elif isinstance(arg, str):
+            validate_symbol_name(arg)
             args.append(f"'{arg}'")
         else:
             args.append(str(arg))
