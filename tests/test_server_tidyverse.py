@@ -2,7 +2,14 @@
 from unittest.mock import MagicMock
 import pytest
 
-from datashield_mcp.server import tidyverse_select, tidyverse_filter
+from datashield_mcp.server import (
+    tidyverse_select,
+    tidyverse_filter,
+    tidyverse_mutate,
+    tidyverse_arrange,
+    tidyverse_rename,
+    tidyverse_slice,
+)
 
 
 def create_mock_context(session_id: str = "test-session"):
@@ -66,3 +73,68 @@ def test_tidyverse_tool_invalid_session():
             tidy_expr="mpg",
             newobj="subset"
         )
+
+
+def test_tidyverse_mutate():
+    """Test tidyverse_mutate tool calls TidyverseClient.mutate."""
+    mock_ctx, mock_dscontext = create_mock_context()
+    
+    result = tidyverse_mutate(
+        ctx=mock_ctx,
+        session_id="test-session",
+        df_name="mtcars",
+        tidy_expr="mpg_squared = mpg ^ 2",
+        newobj="mutated"
+    )
+    
+    assert result == {"server1": ["mtcars", "subset"]}
+    mock_dscontext.session.ls.assert_called_once()
+
+
+def test_tidyverse_arrange():
+    """Test tidyverse_arrange tool calls TidyverseClient.arrange."""
+    mock_ctx, mock_dscontext = create_mock_context()
+    
+    result = tidyverse_arrange(
+        ctx=mock_ctx,
+        session_id="test-session",
+        df_name="mtcars",
+        tidy_expr="desc(mpg)",
+        newobj="sorted"
+    )
+    
+    assert result == {"server1": ["mtcars", "subset"]}
+    mock_dscontext.session.ls.assert_called_once()
+
+
+def test_tidyverse_rename():
+    """Test tidyverse_rename tool calls TidyverseClient.rename."""
+    mock_ctx, mock_dscontext = create_mock_context()
+    
+    result = tidyverse_rename(
+        ctx=mock_ctx,
+        session_id="test-session",
+        df_name="mtcars",
+        tidy_expr="miles_per_gallon = mpg",
+        newobj="renamed"
+    )
+    
+    assert result == {"server1": ["mtcars", "subset"]}
+    mock_dscontext.session.ls.assert_called_once()
+
+
+def test_tidyverse_slice():
+    """Test tidyverse_slice tool calls TidyverseClient.slice."""
+    mock_ctx, mock_dscontext = create_mock_context()
+    
+    result = tidyverse_slice(
+        ctx=mock_ctx,
+        session_id="test-session",
+        df_name="mtcars",
+        tidy_expr="1:10",
+        newobj="sliced"
+    )
+    
+    assert result == {"server1": ["mtcars", "subset"]}
+    mock_dscontext.session.ls.assert_called_once()
+
