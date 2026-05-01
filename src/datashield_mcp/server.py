@@ -12,6 +12,7 @@ from datashield import DSConfig, DSSession, DSLoginBuilder
 from datashield_mcp.models import AppContext, DSContext
 from datashield_mcp.logs import logger
 from datashield_mcp.clients.base import StatsClient, PlotsClient, ModelsClient
+from datashield_mcp.clients.tidyverse import TidyverseClient, TibbleClient
 
 
 @asynccontextmanager
@@ -635,6 +636,81 @@ def get_glm(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
     return ModelsClient(dscontext).get_glm(formula=formula, family=family, maxit=maxit, CI=CI)
+
+
+# Tidyverse Operations
+
+# Data Selection
+@mcp.tool()
+def tidyverse_select(
+    ctx: Context[ServerSession, AppContext],
+    session_id: str,
+    df_name: str,
+    tidy_expr: str,
+    newobj: str,
+) -> dict[str, list[str]]:
+    """Select columns from a DataSHIELD data frame
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        df_name: Name of server-side data frame to select columns from
+        tidy_expr: Column selection expression (e.g., "mpg, cyl" or "starts_with('m')")
+        newobj: Name for the new data frame with selected columns
+
+    Returns:
+        A dictionary mapping server names to lists of available symbols after selection
+
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    
+    TidyverseClient(dscontext).select(
+        df_name=df_name,
+        tidy_expr=tidy_expr,
+        newobj=newobj
+    )
+    
+    return dscontext.session.ls()
+
+
+@mcp.tool()
+def tidyverse_filter(
+    ctx: Context[ServerSession, AppContext],
+    session_id: str,
+    df_name: str,
+    tidy_expr: str,
+    newobj: str,
+) -> dict[str, list[str]]:
+    """Filter rows in a DataSHIELD data frame based on logical conditions
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        df_name: Name of server-side data frame to filter
+        tidy_expr: Logical predicate expression (e.g., "mpg > 20", "cyl == 4 & mpg > 20")
+        newobj: Name for the filtered data frame
+
+    Returns:
+        A dictionary mapping server names to lists of available symbols after filtering
+
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    
+    TidyverseClient(dscontext).filter(
+        df_name=df_name,
+        tidy_expr=tidy_expr,
+        newobj=newobj
+    )
+    
+    return dscontext.session.ls()
 
 
 def main() -> None:
