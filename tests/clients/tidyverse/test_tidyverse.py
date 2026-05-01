@@ -158,3 +158,111 @@ def test_mutate_multiple_columns(mock_dscontext):
     
     call_expr = call_args[0][1]
     assert "mutateDS" in call_expr
+
+
+def test_arrange_single_column(mock_dscontext):
+    """Test arranging by a single column."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.arrange(
+        df_name="mtcars",
+        tidy_expr="mpg",
+        newobj="sorted"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    assert call_args[0][0] == "sorted"
+    call_expr = call_args[0][1]
+    assert "arrangeDS" in call_expr
+    assert "mtcars" in call_expr
+
+
+def test_arrange_multiple_columns(mock_dscontext):
+    """Test arranging by multiple columns with desc()."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.arrange(
+        df_name="mtcars",
+        tidy_expr="desc(mpg), cyl",
+        newobj="sorted"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    call_expr = call_args[0][1]
+    assert "arrangeDS" in call_expr
+
+
+def test_rename_single_column(mock_dscontext):
+    """Test renaming a single column."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.rename(
+        df_name="mtcars",
+        tidy_expr="miles_per_gallon = mpg",
+        newobj="renamed"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    assert call_args[0][0] == "renamed"
+    call_expr = call_args[0][1]
+    assert "renameDS" in call_expr
+    assert "mtcars" in call_expr
+
+
+def test_rename_multiple_columns(mock_dscontext):
+    """Test renaming multiple columns."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.rename(
+        df_name="mtcars",
+        tidy_expr="miles_per_gallon = mpg, cylinders = cyl",
+        newobj="renamed"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    call_expr = call_args[0][1]
+    assert "renameDS" in call_expr
+
+
+def test_slice_basic(mock_dscontext):
+    """Test slicing rows by position."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.slice(
+        df_name="mtcars",
+        tidy_expr="1, 5, 10",
+        newobj="sliced"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    assert call_args[0][0] == "sliced"
+    call_expr = call_args[0][1]
+    assert "sliceDS" in call_expr
+    assert "mtcars" in call_expr
+
+
+def test_slice_range(mock_dscontext):
+    """Test slicing with a range."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.slice(
+        df_name="mtcars",
+        tidy_expr="1:10",
+        newobj="sliced"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    call_expr = call_args[0][1]
+    assert "sliceDS" in call_expr

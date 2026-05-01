@@ -113,3 +113,99 @@ class TidyverseClient:
         
         logger.info(f"[{self.dscontext.id}] Executing mutate: {call_expr}")
         self.dscontext.session.assign(newobj, call_expr)
+    
+    def arrange(
+        self,
+        df_name: str,
+        tidy_expr: str,
+        newobj: str
+    ) -> None:
+        """Arrange rows by column values.
+        
+        DataSHIELD Python implementation of dplyr::arrange.
+        
+        Args:
+            df_name: Name of server-side data frame or tibble
+            tidy_expr: Expression specifying columns to sort by
+                      (e.g., "mpg" or "desc(mpg), cyl")
+            newobj: Name for new server-side data frame
+            
+        Example:
+            >>> client.arrange(
+            ...     df_name="mtcars",
+            ...     tidy_expr="desc(mpg), cyl",
+            ...     newobj="sorted"
+            ... )
+        """
+        call_expr = make_serverside_call(
+            "arrangeDS",
+            tidy_expr,
+            [df_name]
+        )
+        
+        logger.info(f"[{self.dscontext.id}] Executing arrange: {call_expr}")
+        self.dscontext.session.assign(newobj, call_expr)
+    
+    def rename(
+        self,
+        df_name: str,
+        tidy_expr: str,
+        newobj: str
+    ) -> None:
+        """Rename columns.
+        
+        DataSHIELD Python implementation of dplyr::rename.
+        
+        Args:
+            df_name: Name of server-side data frame or tibble
+            tidy_expr: Renaming expression(s)
+                      (e.g., "new_name = old_name" or "a = b, c = d")
+            newobj: Name for new server-side data frame
+            
+        Example:
+            >>> client.rename(
+            ...     df_name="mtcars",
+            ...     tidy_expr="miles_per_gallon = mpg, cylinders = cyl",
+            ...     newobj="renamed"
+            ... )
+        """
+        call_expr = make_serverside_call(
+            "renameDS",
+            tidy_expr,
+            [df_name]
+        )
+        
+        logger.info(f"[{self.dscontext.id}] Executing rename: {call_expr}")
+        self.dscontext.session.assign(newobj, call_expr)
+    
+    def slice(
+        self,
+        df_name: str,
+        tidy_expr: str,
+        newobj: str
+    ) -> None:
+        """Select rows by position.
+        
+        DataSHIELD Python implementation of dplyr::slice.
+        
+        Args:
+            df_name: Name of server-side data frame or tibble
+            tidy_expr: Row positions or ranges
+                      (e.g., "1, 5, 10" or "1:10")
+            newobj: Name for new server-side data frame
+            
+        Example:
+            >>> client.slice(
+            ...     df_name="mtcars",
+            ...     tidy_expr="1:10",
+            ...     newobj="first_ten"
+            ... )
+        """
+        call_expr = make_serverside_call(
+            "sliceDS",
+            tidy_expr,
+            [df_name]
+        )
+        
+        logger.info(f"[{self.dscontext.id}] Executing slice: {call_expr}")
+        self.dscontext.session.assign(newobj, call_expr)
