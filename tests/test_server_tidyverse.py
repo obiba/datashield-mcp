@@ -15,6 +15,9 @@ from datashield_mcp.server import (
     tidyverse_distinct,
     tidyverse_bind_rows,
     tidyverse_bind_cols,
+    tidyverse_if_else,
+    tidyverse_case_when,
+    tibble_as_tibble,
 )
 
 
@@ -64,6 +67,72 @@ def test_tidyverse_filter():
     
     assert result == {"server1": ["mtcars", "subset"]}
     mock_dscontext.session.ls.assert_called_once()
+
+
+def test_tidyverse_if_else():
+    """Test tidyverse_if_else tool calls TidyverseClient.if_else."""
+    mock_ctx, mock_dscontext = create_mock_context()
+    
+    result = tidyverse_if_else(
+        ctx=mock_ctx,
+        session_id="test-session",
+        condition="mpg > 20",
+        true_value="'high'",
+        false_value="'low'",
+        newobj="mpg_category"
+    )
+    
+    assert result == {"server1": ["mtcars", "subset"]}
+    mock_dscontext.session.ls.assert_called_once()
+
+
+def test_tidyverse_if_else_with_missing():
+    """Test tidyverse_if_else with missing_value parameter."""
+    mock_ctx, mock_dscontext = create_mock_context()
+    
+    result = tidyverse_if_else(
+        ctx=mock_ctx,
+        session_id="test-session",
+        condition="mpg > 20",
+        true_value="1",
+        false_value="0",
+        missing_value="NA",
+        newobj="mpg_flag"
+    )
+    
+    assert result == {"server1": ["mtcars", "subset"]}
+    mock_dscontext.session.ls.assert_called_once()
+
+
+def test_tidyverse_case_when():
+    """Test tidyverse_case_when tool calls TidyverseClient.case_when."""
+    mock_ctx, mock_dscontext = create_mock_context()
+    
+    result = tidyverse_case_when(
+        ctx=mock_ctx,
+        session_id="test-session",
+        cases="mpg > 25 ~ 'excellent', mpg > 20 ~ 'good', TRUE ~ 'average'",
+        newobj="mpg_rating"
+    )
+    
+    assert result == {"server1": ["mtcars", "subset"]}
+    mock_dscontext.session.ls.assert_called_once()
+
+
+def test_tibble_as_tibble():
+    """Test tibble_as_tibble tool calls TibbleClient.as_tibble."""
+    mock_ctx, mock_dscontext = create_mock_context()
+    
+    result = tibble_as_tibble(
+        ctx=mock_ctx,
+        session_id="test-session",
+        df_name="mtcars",
+        newobj="mtcars_tibble"
+    )
+    
+    assert result == {"server1": ["mtcars", "subset"]}
+    mock_dscontext.session.ls.assert_called_once()
+
 
 
 def test_tidyverse_distinct():

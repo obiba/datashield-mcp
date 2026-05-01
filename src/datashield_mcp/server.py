@@ -1064,6 +1064,117 @@ def tidyverse_bind_cols(
     return dscontext.session.ls()
 
 
+# Conditional Operations
+@mcp.tool()
+def tidyverse_if_else(
+    ctx: Context[ServerSession, AppContext],
+    session_id: str,
+    condition: str,
+    true_value: str,
+    false_value: str,
+    missing_value: str | None = None,
+    newobj: str = "",
+) -> dict[str, list[str]]:
+    """Create a conditional vector using if-else logic in a DataSHIELD session
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        condition: Logical condition expression (e.g., "df$mpg > 20")
+        true_value: Value when condition is TRUE (e.g., "'high'" or "1")
+        false_value: Value when condition is FALSE (e.g., "'low'" or "0")
+        missing_value: Optional value for NA/missing cases (e.g., "'unknown'" or "NA")
+        newobj: Name for the new conditional vector
+
+    Returns:
+        A dictionary mapping server names to lists of available symbols after operation
+
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    
+    TidyverseClient(dscontext).if_else(
+        condition=condition,
+        true_value=true_value,
+        false_value=false_value,
+        missing_value=missing_value,
+        newobj=newobj
+    )
+    
+    return dscontext.session.ls()
+
+
+@mcp.tool()
+def tidyverse_case_when(
+    ctx: Context[ServerSession, AppContext],
+    session_id: str,
+    cases: str,
+    newobj: str,
+) -> dict[str, list[str]]:
+    """Create a conditional vector using multi-way case logic in a DataSHIELD session
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        cases: Case expressions in the form "condition ~ value, condition ~ value, ..."
+              (e.g., "mpg > 25 ~ 'excellent', mpg > 20 ~ 'good', TRUE ~ 'average'")
+        newobj: Name for the new conditional vector
+
+    Returns:
+        A dictionary mapping server names to lists of available symbols after operation
+
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    
+    TidyverseClient(dscontext).case_when(
+        cases=cases,
+        newobj=newobj
+    )
+    
+    return dscontext.session.ls()
+
+
+# Tibble Operations
+@mcp.tool()
+def tibble_as_tibble(
+    ctx: Context[ServerSession, AppContext],
+    session_id: str,
+    df_name: str,
+    newobj: str,
+) -> dict[str, list[str]]:
+    """Convert a DataSHIELD data frame to a tibble
+
+    Args:
+        ctx: The MCP tool context, which provides access to the application context and session information
+        session_id: The session ID of the connected DataSHIELD session
+        df_name: Name of server-side data frame to convert
+        newobj: Name for the new tibble
+
+    Returns:
+        A dictionary mapping server names to lists of available symbols after conversion
+
+    Raises:
+        ValueError: If the session ID is invalid or not connected to DataSHIELD
+    """
+    dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
+    if not dscontext or not dscontext.session:
+        raise ValueError("Not connected to DataSHIELD")
+    
+    TibbleClient(dscontext).as_tibble(
+        df_name=df_name,
+        newobj=newobj
+    )
+    
+    return dscontext.session.ls()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="DataSHIELD MCP server")
     parser.add_argument(
