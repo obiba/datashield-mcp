@@ -41,7 +41,7 @@ class TidyverseClient:
         call_expr = make_serverside_call("selectDS", tidy_expr, [df_name])
 
         logger.info(f"[{self.dscontext.id}] Executing select: {call_expr}")
-        self.dscontext.session.assign(newobj, call_expr)
+        self.dscontext.session.assign_expr(newobj, call_expr)
 
     def filter(self, df_name: str, tidy_expr: str, newobj: str) -> None:
         """Keep rows that match a condition.
@@ -60,10 +60,12 @@ class TidyverseClient:
             ...     newobj="filtered"
             ... )
         """
-        call_expr = make_serverside_call("filterDS", tidy_expr, [df_name])
+        by = None
+        preserve = False
+        call_expr = make_serverside_call("filterDS", tidy_expr, [df_name, by, preserve])
 
         logger.info(f"[{self.dscontext.id}] Executing filter: {call_expr}")
-        self.dscontext.session.assign(newobj, call_expr)
+        self.dscontext.session.assign_expr(newobj, call_expr)
 
     def mutate(self, df_name: str, tidy_expr: str, newobj: str) -> None:
         """Create or modify columns.
@@ -86,7 +88,7 @@ class TidyverseClient:
         call_expr = make_serverside_call("mutateDS", tidy_expr, [df_name])
 
         logger.info(f"[{self.dscontext.id}] Executing mutate: {call_expr}")
-        self.dscontext.session.assign(newobj, call_expr)
+        self.dscontext.session.assign_expr(newobj, call_expr)
 
     def arrange(self, df_name: str, tidy_expr: str, newobj: str) -> None:
         """Arrange rows by column values.
@@ -109,7 +111,7 @@ class TidyverseClient:
         call_expr = make_serverside_call("arrangeDS", tidy_expr, [df_name])
 
         logger.info(f"[{self.dscontext.id}] Executing arrange: {call_expr}")
-        self.dscontext.session.assign(newobj, call_expr)
+        self.dscontext.session.assign_expr(newobj, call_expr)
 
     def rename(self, df_name: str, tidy_expr: str, newobj: str) -> None:
         """Rename columns.
@@ -132,7 +134,7 @@ class TidyverseClient:
         call_expr = make_serverside_call("renameDS", tidy_expr, [df_name])
 
         logger.info(f"[{self.dscontext.id}] Executing rename: {call_expr}")
-        self.dscontext.session.assign(newobj, call_expr)
+        self.dscontext.session.assign_expr(newobj, call_expr)
 
     def slice(self, df_name: str, tidy_expr: str, newobj: str) -> None:
         """Select rows by position.
@@ -155,7 +157,7 @@ class TidyverseClient:
         call_expr = make_serverside_call("sliceDS", tidy_expr, [df_name])
 
         logger.info(f"[{self.dscontext.id}] Executing slice: {call_expr}")
-        self.dscontext.session.assign(newobj, call_expr)
+        self.dscontext.session.assign_expr(newobj, call_expr)
 
     def group_by(self, df_name: str, tidy_expr: str, newobj: str) -> None:
         """Group data by one or more variables.
@@ -177,7 +179,7 @@ class TidyverseClient:
         call_expr = make_serverside_call("groupByDS", tidy_expr, [df_name])
 
         logger.info(f"[{self.dscontext.id}] Executing group_by: {call_expr}")
-        self.dscontext.session.assign(newobj, call_expr)
+        self.dscontext.session.assign_expr(newobj, call_expr)
 
     def ungroup(self, df_name: str, newobj: str) -> None:
         """Remove grouping from a grouped data frame.
@@ -197,7 +199,7 @@ class TidyverseClient:
         call_expr = make_serverside_call("ungroupDS", None, [df_name])
 
         logger.info(f"[{self.dscontext.id}] Executing ungroup: {call_expr}")
-        self.dscontext.session.assign(newobj, call_expr)
+        self.dscontext.session.assign_expr(newobj, call_expr)
 
     def group_keys(self, df_name: str, newobj: str) -> None:
         """Get the grouping keys from a grouped data frame.
@@ -217,7 +219,7 @@ class TidyverseClient:
         call_expr = make_serverside_call("groupKeysDS", None, [df_name])
 
         logger.info(f"[{self.dscontext.id}] Executing group_keys: {call_expr}")
-        self.dscontext.session.assign(newobj, call_expr)
+        self.dscontext.session.assign_expr(newobj, call_expr)
 
     def distinct(self, df_name: str, tidy_expr: str | None, newobj: str) -> None:
         """Select distinct/unique rows.
@@ -247,7 +249,7 @@ class TidyverseClient:
         call_expr = make_serverside_call("distinctDS", tidy_expr, [df_name])
 
         logger.info(f"[{self.dscontext.id}] Executing distinct: {call_expr}")
-        self.dscontext.session.assign(newobj, call_expr)
+        self.dscontext.session.assign_expr(newobj, call_expr)
 
     def bind_rows(self, df_names: list[str], newobj: str) -> None:
         """Bind multiple data frames by row.
@@ -267,7 +269,7 @@ class TidyverseClient:
         call_expr = make_serverside_call("bindRowsDS", None, df_names)
 
         logger.info(f"[{self.dscontext.id}] Executing bind_rows: {call_expr}")
-        self.dscontext.session.assign(newobj, call_expr)
+        self.dscontext.session.assign_expr(newobj, call_expr)
 
     def bind_cols(self, df_names: list[str], newobj: str) -> None:
         """Bind multiple data frames by column.
@@ -287,7 +289,7 @@ class TidyverseClient:
         call_expr = make_serverside_call("bindColsDS", None, df_names)
 
         logger.info(f"[{self.dscontext.id}] Executing bind_cols: {call_expr}")
-        self.dscontext.session.assign(newobj, call_expr)
+        self.dscontext.session.assign_expr(newobj, call_expr)
 
     def if_else(
         self, condition: str, true_value: str, false_value: str, newobj: str, missing_value: str | None = None
@@ -323,7 +325,7 @@ class TidyverseClient:
         call_expr = make_serverside_call("ifElseDS", tidy_expr, [])
 
         logger.info(f"[{self.dscontext.id}] Executing if_else: {call_expr}")
-        self.dscontext.session.assign(newobj, call_expr)
+        self.dscontext.session.assign_expr(newobj, call_expr)
 
     def case_when(self, cases: str, newobj: str) -> None:
         """Vectorized multi-way if-else (case statement).
@@ -344,4 +346,4 @@ class TidyverseClient:
         call_expr = make_serverside_call("caseWhenDS", cases, [])
 
         logger.info(f"[{self.dscontext.id}] Executing case_when: {call_expr}")
-        self.dscontext.session.assign(newobj, call_expr)
+        self.dscontext.session.assign_expr(newobj, call_expr)
