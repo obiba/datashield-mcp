@@ -60,3 +60,43 @@ def test_select_with_helpers(mock_dscontext):
     call_expr = call_args[0][1]
     assert "selectDS" in call_expr
     assert "mtcars" in call_expr
+
+
+def test_filter_basic(mock_dscontext):
+    """Test filtering with a simple condition."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.filter(
+        df_name="mtcars",
+        tidy_expr="mpg > 20",
+        newobj="filtered"
+    )
+    
+    # Verify assign was called
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    # Check that newobj and call expression are correct
+    assert call_args[0][0] == "filtered"
+    call_expr = call_args[0][1]
+    assert "filterDS" in call_expr
+    assert "mtcars" in call_expr
+
+
+def test_filter_complex_condition(mock_dscontext):
+    """Test filtering with complex logical conditions."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.filter(
+        df_name="mtcars",
+        tidy_expr="mpg > 20 & cyl == 4",
+        newobj="filtered"
+    )
+    
+    # Verify assign was called
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    call_expr = call_args[0][1]
+    assert "filterDS" in call_expr
+    assert "mtcars" in call_expr

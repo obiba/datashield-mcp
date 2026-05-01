@@ -50,3 +50,34 @@ class TidyverseClient:
         
         logger.info(f"[{self.dscontext.id}] Executing select: {call_expr}")
         self.dscontext.session.assign(newobj, call_expr)
+    
+    def filter(
+        self,
+        df_name: str,
+        tidy_expr: str,
+        newobj: str
+    ) -> None:
+        """Keep rows that match a condition.
+        
+        DataSHIELD Python implementation of dplyr::filter.
+        
+        Args:
+            df_name: Name of server-side data frame or tibble
+            tidy_expr: Logical predicate expression (e.g., "mpg > 20 & cyl == 4")
+            newobj: Name for new server-side data frame
+            
+        Example:
+            >>> client.filter(
+            ...     df_name="mtcars",
+            ...     tidy_expr="mpg > 20 & cyl == 4",
+            ...     newobj="filtered"
+            ... )
+        """
+        call_expr = make_serverside_call(
+            "filterDS",
+            tidy_expr,
+            [df_name]
+        )
+        
+        logger.info(f"[{self.dscontext.id}] Executing filter: {call_expr}")
+        self.dscontext.session.assign(newobj, call_expr)
