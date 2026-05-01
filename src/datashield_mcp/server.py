@@ -38,6 +38,7 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
 mcp = FastMCP("DataSHIELD", json_response=True, lifespan=app_lifespan)
 
 PICO_METHODOLOGY_PATH = Path(__file__).parent / "docs" / "datashield-pico.md"
+HARMONIZATION_PATH = Path(__file__).parent / "docs" / "datashield-harmonization.md"
 
 
 @mcp.prompt()
@@ -46,14 +47,30 @@ def pico_methodology() -> str:
     return PICO_METHODOLOGY_PATH.read_text()
 
 
+@mcp.prompt()
+def harmonization() -> str:
+    """Harmonization guide for DataSHIELD analysis."""
+    return HARMONIZATION_PATH.read_text()
+
+
 @mcp.tool()
-def get_analysis_methodology() -> str:
+def list_skills() -> list[str]:
+    """List available skills for DataSHIELD analysis."""
+    return ["pico_methodology", "harmonization"]
+
+
+@mcp.tool()
+def get_skill(name: str) -> str:
     """
-    Returns the recommended methodology for conducting a DataSHIELD analysis.
-    Call this at the start of any analysis session to understand the PICO framework
-    and the correct sequence of operations.
+    Returns the documentation for conducting a DataSHIELD analysis.
+    Call this at the start of any analysis session to evaluate datasets harmonization
+    and understand the PICO framework.
     """
-    return PICO_METHODOLOGY_PATH.read_text()
+    if name == "pico_methodology" or name == "methodology" or name == "pico":
+        return PICO_METHODOLOGY_PATH.read_text()
+    if name == "harmonization":
+        return HARMONIZATION_PATH.read_text()
+    raise ValueError("Skill not found")
 
 
 @mcp.tool()
