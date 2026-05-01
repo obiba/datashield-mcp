@@ -54,7 +54,7 @@ def encode_tidy_eval(input_string: str) -> str:
     encode_dict = get_encode_dictionary()
 
     # Create mapping of input chars to output tokens
-    encode_map = dict(zip(encode_dict["input"], encode_dict["output"]))
+    encode_map = dict(zip(encode_dict["input"], encode_dict["output"], strict=True))
 
     # Encode each character
     result = []
@@ -78,10 +78,7 @@ def make_serverside_call(fun_name: str, tidy_expr: str | None, other_args: list)
     Returns:
         A string representing the R function call
     """
-    if tidy_expr is not None:
-        encoded_expr = encode_tidy_eval(tidy_expr)
-    else:
-        encoded_expr = None
+    encoded_expr = encode_tidy_eval(tidy_expr) if tidy_expr is not None else None
 
     # Build argument list
     args = []
