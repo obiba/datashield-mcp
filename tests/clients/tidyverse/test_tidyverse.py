@@ -266,3 +266,75 @@ def test_slice_range(mock_dscontext):
     
     call_expr = call_args[0][1]
     assert "sliceDS" in call_expr
+
+
+def test_group_by_single_column(mock_dscontext):
+    """Test grouping by a single column."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.group_by(
+        df_name="mtcars",
+        tidy_expr="cyl",
+        newobj="grouped"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    assert call_args[0][0] == "grouped"
+    call_expr = call_args[0][1]
+    assert "groupByDS" in call_expr
+    assert "mtcars" in call_expr
+
+
+def test_group_by_multiple_columns(mock_dscontext):
+    """Test grouping by multiple columns."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.group_by(
+        df_name="mtcars",
+        tidy_expr="cyl, gear",
+        newobj="grouped"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    call_expr = call_args[0][1]
+    assert "groupByDS" in call_expr
+
+
+def test_ungroup(mock_dscontext):
+    """Test ungrouping a grouped dataframe."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.ungroup(
+        df_name="grouped_mtcars",
+        newobj="ungrouped"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    assert call_args[0][0] == "ungrouped"
+    call_expr = call_args[0][1]
+    assert "ungroupDS" in call_expr
+    assert "grouped_mtcars" in call_expr
+
+
+def test_group_keys(mock_dscontext):
+    """Test getting group keys from a grouped dataframe."""
+    client = TidyverseClient(mock_dscontext)
+    
+    client.group_keys(
+        df_name="grouped_mtcars",
+        newobj="keys"
+    )
+    
+    mock_dscontext.session.assign.assert_called_once()
+    call_args = mock_dscontext.session.assign.call_args
+    
+    assert call_args[0][0] == "keys"
+    call_expr = call_args[0][1]
+    assert "groupKeysDS" in call_expr
+    assert "grouped_mtcars" in call_expr

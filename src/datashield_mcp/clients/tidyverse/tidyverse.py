@@ -209,3 +209,90 @@ class TidyverseClient:
         
         logger.info(f"[{self.dscontext.id}] Executing slice: {call_expr}")
         self.dscontext.session.assign(newobj, call_expr)
+    
+    def group_by(
+        self,
+        df_name: str,
+        tidy_expr: str,
+        newobj: str
+    ) -> None:
+        """Group data by one or more variables.
+        
+        DataSHIELD Python implementation of dplyr::group_by.
+        
+        Args:
+            df_name: Name of server-side data frame or tibble
+            tidy_expr: Variables to group by (e.g., "cyl" or "cyl, gear")
+            newobj: Name for new server-side grouped data frame
+            
+        Example:
+            >>> client.group_by(
+            ...     df_name="mtcars",
+            ...     tidy_expr="cyl, gear",
+            ...     newobj="grouped"
+            ... )
+        """
+        call_expr = make_serverside_call(
+            "groupByDS",
+            tidy_expr,
+            [df_name]
+        )
+        
+        logger.info(f"[{self.dscontext.id}] Executing group_by: {call_expr}")
+        self.dscontext.session.assign(newobj, call_expr)
+    
+    def ungroup(
+        self,
+        df_name: str,
+        newobj: str
+    ) -> None:
+        """Remove grouping from a grouped data frame.
+        
+        DataSHIELD Python implementation of dplyr::ungroup.
+        
+        Args:
+            df_name: Name of server-side grouped data frame
+            newobj: Name for new server-side ungrouped data frame
+            
+        Example:
+            >>> client.ungroup(
+            ...     df_name="grouped_mtcars",
+            ...     newobj="ungrouped"
+            ... )
+        """
+        call_expr = make_serverside_call(
+            "ungroupDS",
+            None,
+            [df_name]
+        )
+        
+        logger.info(f"[{self.dscontext.id}] Executing ungroup: {call_expr}")
+        self.dscontext.session.assign(newobj, call_expr)
+    
+    def group_keys(
+        self,
+        df_name: str,
+        newobj: str
+    ) -> None:
+        """Get the grouping keys from a grouped data frame.
+        
+        DataSHIELD Python implementation of dplyr::group_keys.
+        
+        Args:
+            df_name: Name of server-side grouped data frame
+            newobj: Name for new server-side data frame containing group keys
+            
+        Example:
+            >>> client.group_keys(
+            ...     df_name="grouped_mtcars",
+            ...     newobj="keys"
+            ... )
+        """
+        call_expr = make_serverside_call(
+            "groupKeysDS",
+            None,
+            [df_name]
+        )
+        
+        logger.info(f"[{self.dscontext.id}] Executing group_keys: {call_expr}")
+        self.dscontext.session.assign(newobj, call_expr)
