@@ -203,7 +203,6 @@ def test_tibble_as_tibble():
         mock_client_cls,
         mock_dscontext,
         "as_tibble",
-        use_session=False,
         df_name="mtcars",
         newobj="mtcars_tibble",
     )

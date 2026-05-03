@@ -11,7 +11,7 @@ from mcp.server.session import ServerSession
 from datashield import DSConfig, DSSession, DSLoginBuilder
 from datashield_mcp.models import AppContext, DSContext
 from datashield_mcp.logs import logger
-from datashield_mcp.clients.base import StatsClient, PlotsClient, ModelsClient
+from datashield_base import StatsClient, PlotsClient, ModelsClient
 from datashield_tidyverse import TidyverseClient, TibbleClient
 
 
@@ -105,7 +105,7 @@ def open(ctx: Context[ServerSession, AppContext], server_names: list[str]) -> di
     session.open()
     logger.info(f"Opened DataSHIELD session with servers: {session.get_connection_names()} / {server_names}")
     # store the session for later use
-    session_id = str(uuid.uuid4())
+    session_id = session.id or str(uuid.uuid4())
     ctx.request_context.lifespan_context.sessions[session_id] = DSContext(id=session_id, session=session)
     logger.info(f"[{session_id}] Session stored in application context.")
     return {"session_id": session_id, "servers": session.get_connection_names()}
@@ -399,7 +399,7 @@ def get_classes(ctx: Context[ServerSession, AppContext], session_id: str, symbol
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return StatsClient(dscontext).get_classes(symbol)
+    return StatsClient(dscontext.session).get_classes(symbol)
 
 
 @mcp.tool()
@@ -418,7 +418,7 @@ def get_length(ctx: Context[ServerSession, AppContext], session_id: str, symbol:
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return StatsClient(dscontext).get_length(symbol)
+    return StatsClient(dscontext.session).get_length(symbol)
 
 
 @mcp.tool()
@@ -437,7 +437,7 @@ def get_levels(ctx: Context[ServerSession, AppContext], session_id: str, symbol:
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return StatsClient(dscontext).get_levels(symbol)
+    return StatsClient(dscontext.session).get_levels(symbol)
 
 
 @mcp.tool()
@@ -456,7 +456,7 @@ def get_dimensions(ctx: Context[ServerSession, AppContext], session_id: str, sym
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return StatsClient(dscontext).get_dimensions(symbol)
+    return StatsClient(dscontext.session).get_dimensions(symbol)
 
 
 @mcp.tool()
@@ -475,7 +475,7 @@ def get_frequencies(ctx: Context[ServerSession, AppContext], session_id: str, sy
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return StatsClient(dscontext).get_frequencies(symbol)
+    return StatsClient(dscontext.session).get_frequencies(symbol)
 
 
 @mcp.tool()
@@ -497,7 +497,7 @@ def get_crosstab(
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return StatsClient(dscontext).get_crosstab(symbol_x, symbol_y)
+    return StatsClient(dscontext.session).get_crosstab(symbol_x, symbol_y)
 
 
 @mcp.tool()
@@ -516,7 +516,7 @@ def get_quantile_means(ctx: Context[ServerSession, AppContext], session_id: str,
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return StatsClient(dscontext).get_quantile_means(symbol)
+    return StatsClient(dscontext.session).get_quantile_means(symbol)
 
 
 @mcp.tool()
@@ -535,7 +535,7 @@ def get_summary(ctx: Context[ServerSession, AppContext], session_id: str, symbol
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return StatsClient(dscontext).get_summary(symbol)
+    return StatsClient(dscontext.session).get_summary(symbol)
 
 
 @mcp.tool()
@@ -554,7 +554,7 @@ def get_mean(ctx: Context[ServerSession, AppContext], session_id: str, symbol: s
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return StatsClient(dscontext).get_mean(symbol)
+    return StatsClient(dscontext.session).get_mean(symbol)
 
 
 @mcp.tool()
@@ -583,7 +583,14 @@ def get_histogram(
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return PlotsClient(dscontext).get_histogram(symbol, num_breaks=num_breaks, k=k, noise=noise)
+    image_info = PlotsClient(dscontext.session).get_histogram(symbol, num_breaks=num_breaks, k=k, noise=noise)
+    return [
+        TextContent(
+            type="text",
+            text=f"Histogram of {symbol} saved to {image_info['output_path']}",
+        ),
+        ImageContent(type="image", data=image_info["image_b64"], mimeType="image/png"),
+    ]
 
 
 @mcp.tool()
@@ -606,7 +613,7 @@ def get_correlation(
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return ModelsClient(dscontext).get_correlation(symbol_x, symbol_y)
+    return ModelsClient(dscontext.session).get_correlation(symbol_x, symbol_y)
 
 
 @mcp.tool()
@@ -635,7 +642,7 @@ def get_glm(
     dscontext = ctx.request_context.lifespan_context.sessions.get(session_id)
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
-    return ModelsClient(dscontext).get_glm(formula=formula, family=family, maxit=maxit, CI=CI)
+    return ModelsClient(dscontext.session).get_glm(formula=formula, family=family, maxit=maxit, CI=CI)
 
 
 # Tidyverse Operations
@@ -1117,7 +1124,7 @@ def tibble_as_tibble(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
 
-    TibbleClient(dscontext).as_tibble(df_name=df_name, newobj=newobj)
+    TibbleClient(dscontext.session).as_tibble(df_name=df_name, newobj=newobj)
 
     return dscontext.session.ls()
 

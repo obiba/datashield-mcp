@@ -1,5 +1,7 @@
 # DataSHIELD MCP
 
+[![GitHub Actions](https://github.com/obiba/datashield-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/obiba/datashield-mcp/actions)
+
 [DataSHIELD](https://datashield.org/) enables privacy-preserving federated analysis across distributed datasets, but researchers must learn specialized R commands and APIs. This creates a barrier to adoption, particularly for those less familiar with programming or DataSHIELD's specific syntax.
 
 DataSHIELD MCP ([Model Context Protocol](https://modelcontextprotocol.io/)), is an open-source tool that allows researchers to interact with DataSHIELD infrastructure using natural language through AI agents, dramatically lowering the technical barrier to federated analysis.

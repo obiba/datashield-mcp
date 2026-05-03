@@ -395,11 +395,25 @@ wheels = [
 ]
 
 [[package]]
+name = "datashield-base"
+version = "0.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "datashield" },
+    { name = "matplotlib" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4b/69/0b941724766f24e91bc9fbfa61a0949284442235b309d7ba6c729d4cce07/datashield_base-0.1.1.tar.gz", hash = "sha256:d94e87fd3a1518e394355299f37e02c9eb57ee22ed40b399d198e593671cf929", size = 10998, upload-time = "2026-05-03T09:55:29.613Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/6f/ea167af0b2e18c11cbf1b19bd6d3dc272c0d7d7fa91594cfd6849361ce50/datashield_base-0.1.1-py3-none-any.whl", hash = "sha256:da5a03c6f01bc4aa4301dd91ed2b2277093bb9c8541a0e3f0b8cab2b698565ff", size = 12843, upload-time = "2026-05-03T09:55:28.443Z" },
+]
+
+[[package]]
 name = "datashield-mcp"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "datashield" },
+    { name = "datashield-base" },
     { name = "datashield-opal" },
     { name = "datashield-tidyverse" },
     { name = "matplotlib" },
@@ -417,6 +431,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "datashield", specifier = ">=0.5.1" },
+    { name = "datashield-base", specifier = ">=0.1.1" },
     { name = "datashield-opal", specifier = ">=0.3.0" },
     { name = "datashield-tidyverse", specifier = ">=0.1.0" },
     { name = "matplotlib", specifier = ">=3.10.8" },
