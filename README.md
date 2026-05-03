@@ -14,31 +14,25 @@ DataSHIELD MCP democratizes access to federated analysis by removing programming
 
 ## Installation
 
-### Dependencies
+### Install MCP Tool
 
 The Python project manager `uv` is required: see [uv documentation](https://docs.astral.sh/uv/).
-
-Install the dependencies with:
-
-```sh
-make install
-```
-
-### Configuration
-
-You will also need to setup a DataSHIELD configuration. See the **Configuration** instructions at the [DataSHIELD Python package README](https://github.com/datashield/datashield-python/). 
-
-## Usage
-
-Use [OpenCode](https://opencode.ai/docs/) as the AI agent prompt interface.
-
-### From any folder
 
 Install the DataSHIELD MCP tool using `uv`:
 
 ```sh
 uv tool install git+ssh://git@github.com/obiba/datashield-mcp
 ```
+
+### DataSHIELD Configuration
+
+You will also need to setup a DataSHIELD configuration. See the **Configuration** instructions at the [DataSHIELD Python package README](https://github.com/datashield/datashield-python/). 
+
+## Usage
+
+Use [OpenCode](https://opencode.ai/docs/) or [Claude Code](https://claude.com/product/claude-code) as the AI agent prompt interface.
+
+### From any folder
 
 **OpenCode**
 
@@ -121,6 +115,12 @@ claude
 ```
 
 ## Development
+
+Install the dependencies with:
+
+```sh
+make install
+```
 
 ### Built-in web interface
 

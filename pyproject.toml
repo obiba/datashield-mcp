@@ -1,6 +1,6 @@
 [project]
 name = "datashield-mcp"
-version = "0.1.0"
+version = "0.1.1"
 description = "A MCP server to interact with DataSHIELD"
 readme = "README.md"
 authors = [
