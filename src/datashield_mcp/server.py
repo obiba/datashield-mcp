@@ -12,7 +12,7 @@ from datashield import DSConfig, DSSession, DSLoginBuilder
 from datashield_mcp.models import AppContext, DSContext
 from datashield_mcp.logs import logger
 from datashield_mcp.clients.base import StatsClient, PlotsClient, ModelsClient
-from datashield_mcp.clients.tidyverse import TidyverseClient, TibbleClient
+from datashield_tidyverse import TidyverseClient, TibbleClient
 
 
 @asynccontextmanager
@@ -669,7 +669,7 @@ def tidyverse_select(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
 
-    TidyverseClient(dscontext).select(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
+    TidyverseClient(dscontext.session).select(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
 
     return dscontext.session.ls()
 
@@ -701,7 +701,7 @@ def tidyverse_filter(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
 
-    TidyverseClient(dscontext).filter(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
+    TidyverseClient(dscontext.session).filter(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
 
     return dscontext.session.ls()
 
@@ -734,7 +734,7 @@ def tidyverse_mutate(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
 
-    TidyverseClient(dscontext).mutate(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
+    TidyverseClient(dscontext.session).mutate(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
 
     return dscontext.session.ls()
 
@@ -766,7 +766,7 @@ def tidyverse_arrange(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
 
-    TidyverseClient(dscontext).arrange(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
+    TidyverseClient(dscontext.session).arrange(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
 
     return dscontext.session.ls()
 
@@ -798,7 +798,7 @@ def tidyverse_rename(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
 
-    TidyverseClient(dscontext).rename(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
+    TidyverseClient(dscontext.session).rename(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
 
     return dscontext.session.ls()
 
@@ -830,7 +830,7 @@ def tidyverse_slice(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
 
-    TidyverseClient(dscontext).slice(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
+    TidyverseClient(dscontext.session).slice(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
 
     return dscontext.session.ls()
 
@@ -863,7 +863,7 @@ def tidyverse_group_by(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
 
-    TidyverseClient(dscontext).group_by(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
+    TidyverseClient(dscontext.session).group_by(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
 
     return dscontext.session.ls()
 
@@ -893,7 +893,7 @@ def tidyverse_ungroup(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
 
-    TidyverseClient(dscontext).ungroup(df_name=df_name, newobj=newobj)
+    TidyverseClient(dscontext.session).ungroup(df_name=df_name, newobj=newobj)
 
     return dscontext.session.ls()
 
@@ -923,7 +923,7 @@ def tidyverse_group_keys(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
 
-    TidyverseClient(dscontext).group_keys(df_name=df_name, newobj=newobj)
+    TidyverseClient(dscontext.session).group_keys(df_name=df_name, newobj=newobj)
 
     return dscontext.session.ls()
 
@@ -956,7 +956,7 @@ def tidyverse_distinct(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
 
-    TidyverseClient(dscontext).distinct(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
+    TidyverseClient(dscontext.session).distinct(df_name=df_name, tidy_expr=tidy_expr, newobj=newobj)
 
     return dscontext.session.ls()
 
@@ -986,7 +986,7 @@ def tidyverse_bind_rows(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
 
-    TidyverseClient(dscontext).bind_rows(df_names=df_names, newobj=newobj)
+    TidyverseClient(dscontext.session).bind_rows(df_names=df_names, newobj=newobj)
 
     return dscontext.session.ls()
 
@@ -1016,7 +1016,7 @@ def tidyverse_bind_cols(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
 
-    TidyverseClient(dscontext).bind_cols(df_names=df_names, newobj=newobj)
+    TidyverseClient(dscontext.session).bind_cols(df_names=df_names, newobj=newobj)
 
     return dscontext.session.ls()
 
@@ -1053,7 +1053,7 @@ def tidyverse_if_else(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
 
-    TidyverseClient(dscontext).if_else(
+    TidyverseClient(dscontext.session).if_else(
         condition=condition, true_value=true_value, false_value=false_value, missing_value=missing_value, newobj=newobj
     )
 
@@ -1086,7 +1086,7 @@ def tidyverse_case_when(
     if not dscontext or not dscontext.session:
         raise ValueError("Not connected to DataSHIELD")
 
-    TidyverseClient(dscontext).case_when(cases=cases, newobj=newobj)
+    TidyverseClient(dscontext.session).case_when(cases=cases, newobj=newobj)
 
     return dscontext.session.ls()
 

@@ -36,9 +36,17 @@ def create_mock_context(session_id: str = "test-session"):
     return mock_ctx, mock_dscontext
 
 
-def assert_tool_invokes_client_method(mock_client_cls, mock_dscontext, method_name: str, **expected_kwargs):
+def assert_tool_invokes_client_method(
+    mock_client_cls,
+    mock_dscontext,
+    method_name: str,
+    *,
+    use_session: bool = True,
+    **expected_kwargs,
+):
     """Assert that a tool instantiated the right client and invoked the expected method."""
-    mock_client_cls.assert_called_once_with(mock_dscontext)
+    client_context = mock_dscontext.session if use_session else mock_dscontext
+    mock_client_cls.assert_called_once_with(client_context)
     method = getattr(mock_client_cls.return_value, method_name)
     method.assert_called_once_with(**expected_kwargs)
 
@@ -195,6 +203,7 @@ def test_tibble_as_tibble():
         mock_client_cls,
         mock_dscontext,
         "as_tibble",
+        use_session=False,
         df_name="mtcars",
         newobj="mtcars_tibble",
     )
