@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "datashield": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "datashield-mcp"]
+    }
+  }
+}

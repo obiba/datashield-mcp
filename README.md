@@ -40,6 +40,8 @@ Install the DataSHIELD MCP tool using `uv`:
 uv tool install git+ssh://git@github.com/obiba/datashield-mcp
 ```
 
+**OpenCode**
+
 Set up the `opencode.json` as follows:
 
 ```json
@@ -61,7 +63,32 @@ And verify it is working:
 opencode mcp list
 ```
 
+**Claude Code**
+
+Project-scoped MCP configuration is stored in `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "datashield": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "datashield-mcp"]
+    }
+  }
+}
+```
+
+And verify it is working:
+
+```sh
+claude mcp list
+```
+
+
 ### From this project
+
+**OpenCode**
 
 Use OpenCode from this project folder: the DataSHIELD MCP server is declared in the `opencode.json` configuration file.
 
@@ -75,6 +102,22 @@ Start OpenCode and list servers available, open connection, assign tables etc.:
 
 ```sh
 opencode
+```
+
+**Claude Code**
+
+Use Claude Code from this project folder: the DataSHIELD MCP server is declared in the `.mcp.json` configuration file.
+
+Verify that the MCP is operational:
+
+```sh
+claude mcp list
+```
+
+Start Claude Code and list servers available:
+
+```sh
+claude
 ```
 
 ## Development
