@@ -158,7 +158,32 @@ OR start it from the VSCode launcher with the configuration:
   ...
 ```
 
-Then configure OpenCode to connect to this remote server:
+Then configure your AI assistant to connect to this remote server.
+
+**Claude Code**
+
+Replace the stdio declaration in `.mcp.json` with an HTTP one:
+
+```json
+{
+  "mcpServers": {
+    "datashield": {
+      "type": "http",
+      "url": "http://127.0.0.1:8008/mcp"
+    }
+  }
+}
+```
+
+OR register it from the command line (use `--scope project` to write it to `.mcp.json` instead of your user config):
+
+```sh
+claude mcp add --transport http datashield http://127.0.0.1:8008/mcp
+```
+
+Verify the connection with `claude mcp list` (or `/mcp` inside a Claude Code session).
+
+**OpenCode**
 
 ```json
 {
