@@ -12,7 +12,7 @@ dependencies = [
     "datashield-opal>=0.3.0",
     "datashield-base>=0.1.1",
     "datashield-tidyverse>=0.1.0",
-    "mcp[cli]>=1.26.0",
+    "mcp[cli]>=2.0.0",
     "matplotlib>=3.10.8",
 ]
 

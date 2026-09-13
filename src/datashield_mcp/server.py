@@ -5,9 +5,8 @@ from typing import Any
 
 from contextlib import asynccontextmanager
 from pathlib import Path
-from mcp.server.fastmcp import Context, FastMCP
+from mcp.server.mcpserver import Context, MCPServer
 from mcp.types import ImageContent, TextContent
-from mcp.server.session import ServerSession
 from datashield import DSConfig, DSSession, DSLoginBuilder
 from datashield_mcp.models import AppContext, DSContext
 from datashield_mcp.logs import logger
@@ -16,11 +15,11 @@ from datashield_tidyverse import TidyverseClient, TibbleClient
 
 
 @asynccontextmanager
-async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
-    """Lifespan context manager for the FastMCP server."""
+async def app_lifespan(server: MCPServer) -> AsyncIterator[AppContext]:
+    """Lifespan context manager for the MCP server."""
     # Initialize application context
     context = AppContext(sessions={})
-    logger.info("Starting FastMCP server with DataSHIELD integration.")
+    logger.info("Starting MCP server with DataSHIELD integration.")
     try:
         yield context
     finally:
@@ -32,11 +31,11 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
                 # TODO - add more cleanup if needed (e.g. remove temporary files)
             except Exception:
                 logger.warning(f"Failed to close DataSHIELD session {session_id}.")
-        logger.info("FastMCP server shutdown complete.")
+        logger.info("MCP server shutdown complete.")
 
 
 # Create an MCP server
-mcp = FastMCP("DataSHIELD", json_response=True, lifespan=app_lifespan)
+mcp = MCPServer("DataSHIELD", lifespan=app_lifespan)
 
 PICO_METHODOLOGY_PATH = Path(__file__).parent / "docs" / "datashield-pico.md"
 HARMONIZATION_PATH = Path(__file__).parent / "docs" / "datashield-harmonization.md"
@@ -75,7 +74,7 @@ def get_skill(name: str) -> str:
 
 
 @mcp.tool()
-def available_servers(ctx: Context[ServerSession, AppContext]) -> list[str]:
+def available_servers(ctx: Context[AppContext]) -> list[str]:
     """List available DataSHIELD servers
 
     Args:
@@ -90,7 +89,7 @@ def available_servers(ctx: Context[ServerSession, AppContext]) -> list[str]:
 
 
 @mcp.tool()
-def open(ctx: Context[ServerSession, AppContext], server_names: list[str]) -> dict[str, str | list[str]]:
+def open(ctx: Context[AppContext], server_names: list[str]) -> dict[str, str | list[str]]:
     """Open a DataSHIELD session
     Args:
         ctx: The MCP tool context, which provides access to the application context and session information
@@ -112,7 +111,7 @@ def open(ctx: Context[ServerSession, AppContext], server_names: list[str]) -> di
 
 
 @mcp.tool()
-def close(ctx: Context[ServerSession, AppContext], session_id: str) -> None:
+def close(ctx: Context[AppContext], session_id: str) -> None:
     """Close a DataSHIELD session
 
     Args:
@@ -127,7 +126,7 @@ def close(ctx: Context[ServerSession, AppContext], session_id: str) -> None:
 
 
 @mcp.tool()
-def get_errors(ctx: Context[ServerSession, AppContext], session_id: str) -> dict[str, list[str]]:
+def get_errors(ctx: Context[AppContext], session_id: str) -> dict[str, list[str]]:
     """Get errors from the connected DataSHIELD session
 
     Args:
@@ -147,7 +146,7 @@ def get_errors(ctx: Context[ServerSession, AppContext], session_id: str) -> dict
 
 
 @mcp.tool()
-def list_tables(ctx: Context[ServerSession, AppContext], session_id: str) -> dict[str, list[str]]:
+def list_tables(ctx: Context[AppContext], session_id: str) -> dict[str, list[str]]:
     """List tables available in the connected DataSHIELD session
 
     Args:
@@ -168,7 +167,7 @@ def list_tables(ctx: Context[ServerSession, AppContext], session_id: str) -> dic
 
 @mcp.tool()
 def list_table_variables(
-    ctx: Context[ServerSession, AppContext], session_id: str, tables: dict[str, str]
+    ctx: Context[AppContext], session_id: str, tables: dict[str, str]
 ) -> dict[str, list[dict]]:
     """List variables in a table available in the connected DataSHIELD session
 
@@ -190,7 +189,7 @@ def list_table_variables(
 
 
 @mcp.tool()
-def list_taxonomies(ctx: Context[ServerSession, AppContext], session_id: str) -> dict[str, list[dict]]:
+def list_taxonomies(ctx: Context[AppContext], session_id: str) -> dict[str, list[dict]]:
     """List taxonomies available in the connected DataSHIELD session. A taxonomy is a hierarchical structure of vocabulary
     terms that can be used to annotate variables in the data repository.
     Depending on the data repository's capabilities, taxonomies can be used to perform structured
@@ -213,7 +212,7 @@ def list_taxonomies(ctx: Context[ServerSession, AppContext], session_id: str) ->
 
 
 @mcp.tool()
-def search_variables(ctx: Context[ServerSession, AppContext], session_id: str, query: str) -> dict[str, dict]:
+def search_variables(ctx: Context[AppContext], session_id: str, query: str) -> dict[str, dict]:
     """Search for variables in the connected DataSHIELD session using a query string and an optional taxonomy filter
 
     Args:
@@ -236,7 +235,7 @@ def search_variables(ctx: Context[ServerSession, AppContext], session_id: str, q
 
 
 @mcp.tool()
-def list_resources(ctx: Context[ServerSession, AppContext], session_id: str) -> dict[str, list[str]]:
+def list_resources(ctx: Context[AppContext], session_id: str) -> dict[str, list[str]]:
     """List resources available in the connected DataSHIELD session
 
     Args:
@@ -256,7 +255,7 @@ def list_resources(ctx: Context[ServerSession, AppContext], session_id: str) -> 
 
 
 @mcp.tool()
-def list_symbols(ctx: Context[ServerSession, AppContext], session_id: str) -> dict[str, list[str]]:
+def list_symbols(ctx: Context[AppContext], session_id: str) -> dict[str, list[str]]:
     """List symbols available in the connected DataSHIELD session
 
     Args:
@@ -277,7 +276,7 @@ def list_symbols(ctx: Context[ServerSession, AppContext], session_id: str) -> di
 
 @mcp.tool()
 def remove_symbols(
-    ctx: Context[ServerSession, AppContext], session_id: str, symbols: list[str]
+    ctx: Context[AppContext], session_id: str, symbols: list[str]
 ) -> dict[str, list[str]]:
     """Remove symbols from the connected DataSHIELD session
 
@@ -302,7 +301,7 @@ def remove_symbols(
 
 @mcp.tool()
 def assign_tables(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     symbol: str,
     tables: dict[str, str],
@@ -329,7 +328,7 @@ def assign_tables(
 
 @mcp.tool()
 def assign_resources(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     symbol: str,
     resources: dict[str, str],
@@ -363,7 +362,7 @@ def assign_resources(
 
 
 @mcp.tool()
-def list_colnames(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, list[str]]:
+def list_colnames(ctx: Context[AppContext], session_id: str, symbol: str) -> dict[str, list[str]]:
     """List column names of a table in the connected DataSHIELD session
 
     Args:
@@ -384,7 +383,7 @@ def list_colnames(ctx: Context[ServerSession, AppContext], session_id: str, symb
 
 
 @mcp.tool()
-def get_classes(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, list[str]]:
+def get_classes(ctx: Context[AppContext], session_id: str, symbol: str) -> dict[str, list[str]]:
     """Get the classes of a symbol in the connected DataSHIELD session
 
     Args:
@@ -403,7 +402,7 @@ def get_classes(ctx: Context[ServerSession, AppContext], session_id: str, symbol
 
 
 @mcp.tool()
-def get_length(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, int]:
+def get_length(ctx: Context[AppContext], session_id: str, symbol: str) -> dict[str, int]:
     """Get the length of a symbol in the connected DataSHIELD session
 
     Args:
@@ -422,7 +421,7 @@ def get_length(ctx: Context[ServerSession, AppContext], session_id: str, symbol:
 
 
 @mcp.tool()
-def get_levels(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, list[str]]:
+def get_levels(ctx: Context[AppContext], session_id: str, symbol: str) -> dict[str, list[str]]:
     """Get the levels of a factor symbol in the connected DataSHIELD session
 
     Args:
@@ -441,7 +440,7 @@ def get_levels(ctx: Context[ServerSession, AppContext], session_id: str, symbol:
 
 
 @mcp.tool()
-def get_dimensions(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, list[int]]:
+def get_dimensions(ctx: Context[AppContext], session_id: str, symbol: str) -> dict[str, list[int]]:
     """Get the dimensions of a symbol in the connected DataSHIELD session
 
     Args:
@@ -460,7 +459,7 @@ def get_dimensions(ctx: Context[ServerSession, AppContext], session_id: str, sym
 
 
 @mcp.tool()
-def get_frequencies(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, Any]:
+def get_frequencies(ctx: Context[AppContext], session_id: str, symbol: str) -> dict[str, Any]:
     """Get the frequencies of a factor symbol in the connected DataSHIELD session
 
     Args:
@@ -480,7 +479,7 @@ def get_frequencies(ctx: Context[ServerSession, AppContext], session_id: str, sy
 
 @mcp.tool()
 def get_crosstab(
-    ctx: Context[ServerSession, AppContext], session_id: str, symbol_x: str, symbol_y: str
+    ctx: Context[AppContext], session_id: str, symbol_x: str, symbol_y: str
 ) -> dict[str, Any]:
     """Get the crosstab (contingency table) between two symbols in the connected DataSHIELD session
 
@@ -501,7 +500,7 @@ def get_crosstab(
 
 
 @mcp.tool()
-def get_quantile_means(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, Any]:
+def get_quantile_means(ctx: Context[AppContext], session_id: str, symbol: str) -> dict[str, Any]:
     """Get the quantiles and means of a numeric symbol in the connected DataSHIELD session
 
     Args:
@@ -520,7 +519,7 @@ def get_quantile_means(ctx: Context[ServerSession, AppContext], session_id: str,
 
 
 @mcp.tool()
-def get_summary(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, Any]:
+def get_summary(ctx: Context[AppContext], session_id: str, symbol: str) -> dict[str, Any]:
     """Get the summary of a symbol in the connected DataSHIELD session
 
     Args:
@@ -539,7 +538,7 @@ def get_summary(ctx: Context[ServerSession, AppContext], session_id: str, symbol
 
 
 @mcp.tool()
-def get_mean(ctx: Context[ServerSession, AppContext], session_id: str, symbol: str) -> dict[str, Any]:
+def get_mean(ctx: Context[AppContext], session_id: str, symbol: str) -> dict[str, Any]:
     """Get the mean of a symbol in the connected DataSHIELD session
 
     Args:
@@ -559,7 +558,7 @@ def get_mean(ctx: Context[ServerSession, AppContext], session_id: str, symbol: s
 
 @mcp.tool()
 def get_histogram(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     symbol: str,
     num_breaks: int = 20,
@@ -589,13 +588,13 @@ def get_histogram(
             type="text",
             text=f"Histogram of {symbol} saved to {image_info['output_path']}",
         ),
-        ImageContent(type="image", data=image_info["image_b64"], mimeType="image/png"),
+        ImageContent(type="image", data=image_info["image_b64"], mime_type="image/png"),
     ]
 
 
 @mcp.tool()
 def get_correlation(
-    ctx: Context[ServerSession, AppContext], session_id: str, symbol_x: str, symbol_y: str
+    ctx: Context[AppContext], session_id: str, symbol_x: str, symbol_y: str
 ) -> dict[str, Any]:
     """Get the correlation between two symbols in the connected DataSHIELD session
 
@@ -618,7 +617,7 @@ def get_correlation(
 
 @mcp.tool()
 def get_glm(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     formula: str,
     family: str,
@@ -651,7 +650,7 @@ def get_glm(
 # Data Selection
 @mcp.tool()
 def tidyverse_select(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     df_name: str,
     tidy_expr: str,
@@ -683,7 +682,7 @@ def tidyverse_select(
 
 @mcp.tool()
 def tidyverse_filter(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     df_name: str,
     tidy_expr: str,
@@ -716,7 +715,7 @@ def tidyverse_filter(
 # Data Transformation
 @mcp.tool()
 def tidyverse_mutate(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     df_name: str,
     tidy_expr: str,
@@ -748,7 +747,7 @@ def tidyverse_mutate(
 
 @mcp.tool()
 def tidyverse_arrange(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     df_name: str,
     tidy_expr: str,
@@ -780,7 +779,7 @@ def tidyverse_arrange(
 
 @mcp.tool()
 def tidyverse_rename(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     df_name: str,
     tidy_expr: str,
@@ -812,7 +811,7 @@ def tidyverse_rename(
 
 @mcp.tool()
 def tidyverse_slice(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     df_name: str,
     tidy_expr: str,
@@ -845,7 +844,7 @@ def tidyverse_slice(
 # Grouping Operations
 @mcp.tool()
 def tidyverse_group_by(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     df_name: str,
     tidy_expr: str,
@@ -877,7 +876,7 @@ def tidyverse_group_by(
 
 @mcp.tool()
 def tidyverse_ungroup(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     df_name: str,
     newobj: str,
@@ -907,7 +906,7 @@ def tidyverse_ungroup(
 
 @mcp.tool()
 def tidyverse_group_keys(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     df_name: str,
     newobj: str,
@@ -938,7 +937,7 @@ def tidyverse_group_keys(
 # Combining Operations
 @mcp.tool()
 def tidyverse_distinct(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     df_name: str,
     tidy_expr: str | None,
@@ -970,7 +969,7 @@ def tidyverse_distinct(
 
 @mcp.tool()
 def tidyverse_bind_rows(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     df_names: list[str],
     newobj: str,
@@ -1000,7 +999,7 @@ def tidyverse_bind_rows(
 
 @mcp.tool()
 def tidyverse_bind_cols(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     df_names: list[str],
     newobj: str,
@@ -1031,7 +1030,7 @@ def tidyverse_bind_cols(
 # Conditional Operations
 @mcp.tool()
 def tidyverse_if_else(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     condition: str,
     true_value: str,
@@ -1069,7 +1068,7 @@ def tidyverse_if_else(
 
 @mcp.tool()
 def tidyverse_case_when(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     cases: str,
     newobj: str,
@@ -1101,7 +1100,7 @@ def tidyverse_case_when(
 # Tibble Operations
 @mcp.tool()
 def tibble_as_tibble(
-    ctx: Context[ServerSession, AppContext],
+    ctx: Context[AppContext],
     session_id: str,
     df_name: str,
     newobj: str,
@@ -1141,11 +1140,14 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=8008, help="Port for HTTP transport (default: 8008)")
     args = parser.parse_args()
 
+    run_kwargs: dict[str, Any] = {}
     if args.transport != "stdio":
-        mcp.settings.host = args.host
-        mcp.settings.port = args.port
+        run_kwargs["host"] = args.host
+        run_kwargs["port"] = args.port
+    if args.transport == "streamable-http":
+        run_kwargs["json_response"] = True
     try:
-        mcp.run(transport=args.transport)
+        mcp.run(transport=args.transport, **run_kwargs)
     except KeyboardInterrupt:
         logger.info("Server stopped.")
 
