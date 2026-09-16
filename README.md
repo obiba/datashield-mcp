@@ -30,7 +30,7 @@ You will also need to setup a DataSHIELD configuration. See the **Configuration*
 
 ## Usage
 
-Use [OpenCode](https://opencode.ai/docs/) or [Claude Code](https://claude.com/product/claude-code) as the AI agent prompt interface.
+Use [OpenCode](https://opencode.ai/docs/), [Claude Code](https://claude.com/product/claude-code) or [Codex](https://developers.openai.com/codex/) as the AI agent prompt interface.
 
 ### From any folder
 
@@ -79,6 +79,26 @@ And verify it is working:
 claude mcp list
 ```
 
+**Codex**
+
+Register the MCP server in your user configuration `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.datashield]
+command = "datashield-mcp"
+```
+
+OR register it from the command line:
+
+```sh
+codex mcp add datashield -- datashield-mcp
+```
+
+And verify it is working:
+
+```sh
+codex mcp list
+```
 
 ### From this project
 
@@ -112,6 +132,22 @@ Start Claude Code and list servers available:
 
 ```sh
 claude
+```
+
+**Codex**
+
+Use Codex from this project folder: the DataSHIELD MCP server is declared in the `.codex/config.toml` configuration file (project-scoped configuration is only loaded for trusted projects, so accept the trust prompt when Codex starts).
+
+Verify that the MCP is operational:
+
+```sh
+codex mcp list
+```
+
+Start Codex and list servers available:
+
+```sh
+codex
 ```
 
 ## Development
@@ -197,3 +233,20 @@ Verify the connection with `claude mcp list` (or `/mcp` inside a Claude Code ses
   }
 }
 ```
+
+**Codex**
+
+Replace the stdio declaration in `.codex/config.toml` (or `~/.codex/config.toml`) with an HTTP one:
+
+```toml
+[mcp_servers.datashield]
+url = "http://127.0.0.1:8008/mcp"
+```
+
+OR register it from the command line:
+
+```sh
+codex mcp add datashield --url http://127.0.0.1:8008/mcp
+```
+
+Verify the connection with `codex mcp list` (or `/mcp` inside a Codex session).
