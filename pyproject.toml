@@ -26,6 +26,7 @@ dev = [
 
 [project.scripts]
 datashield-mcp = "datashield_mcp.server:main"
+datashield-guard = "datashield_mcp.guard.proxy:main"
 
 [project.urls]
 Homepage = "https://www.datashield.org"
