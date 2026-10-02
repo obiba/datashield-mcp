@@ -104,7 +104,7 @@ codex mcp list
 
 **OpenCode**
 
-Use OpenCode from this project folder: the DataSHIELD MCP server is declared in the `opencode.json` configuration file.
+Use OpenCode from this project folder: the DataSHIELD MCP server, behind the [guard](#guard-plan-enforcement), is declared in the `opencode.json` configuration file.
 
 Verify that the MCP is operational:
 
@@ -120,7 +120,7 @@ opencode
 
 **Claude Code**
 
-Use Claude Code from this project folder: the DataSHIELD MCP server is declared in the `.mcp.json` configuration file.
+Use Claude Code from this project folder: the DataSHIELD MCP server, behind the [guard](#guard-plan-enforcement), is declared in the `.mcp.json` configuration file.
 
 Verify that the MCP is operational:
 
@@ -136,7 +136,7 @@ claude
 
 **Codex**
 
-Use Codex from this project folder: the DataSHIELD MCP server is declared in the `.codex/config.toml` configuration file (project-scoped configuration is only loaded for trusted projects, so accept the trust prompt when Codex starts).
+Use Codex from this project folder: the DataSHIELD MCP server, behind the [guard](#guard-plan-enforcement), is declared in the `.codex/config.toml` configuration file (project-scoped configuration is only loaded for trusted projects, so accept the trust prompt when Codex starts).
 
 Verify that the MCP is operational:
 
@@ -149,6 +149,33 @@ Start Codex and list servers available:
 ```sh
 codex
 ```
+
+## Guard (plan enforcement)
+
+`datashield-guard` is an MCP proxy in front of the DataSHIELD MCP server that adds client-side controls on top of the server-side DataSHIELD disclosure settings:
+
+* **Plan then execute**: data tools are denied until the model submits an analysis plan (`submit_plan`: research question, tables, variables, subsets, tools) and a human approves it. Each call is then checked against the plan.
+* **Attack patterns**: identifier-like variables, free-form expressions (only allowlisted functions and planned names), row slicing, near-overlapping subsets (differencing), long subset chains (progressive narrowing), rate limit and repeated identical queries.
+* **Audit**: append-only JSON lines in `.datashield/audit/<session>.jsonl` (plan, calls, denials, results).
+
+The project configurations (`.mcp.json`, `.codex/config.toml`, `opencode.json`) declare the guard *instead of* the DataSHIELD MCP server, so that the model cannot bypass it (by default it runs the DataSHIELD MCP server in-process, or use `--upstream <url>`):
+
+```json
+{
+  "mcpServers": {
+    "datashield": { "type": "stdio", "command": "uv", "args": ["run", "datashield-guard", "serve"] }
+  }
+}
+```
+
+Review and approve submitted plans from a terminal:
+
+```sh
+uv run datashield-guard list
+uv run datashield-guard approve <plan_id>
+```
+
+The approval is out of the model's reach only if the model has no shell access: in Claude Code/Codex, do not allow it to run `datashield-guard` nor to edit `.datashield/`.
 
 ## Development
 
@@ -194,7 +221,7 @@ OR start it from the VSCode launcher with the configuration:
   ...
 ```
 
-Then configure your AI assistant to connect to this remote server.
+Then configure your AI assistant to connect to this remote server (note: this bypasses the guard).
 
 **Claude Code**
 

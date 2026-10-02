@@ -3,7 +3,7 @@
     "datashield": {
       "type": "stdio",
       "command": "uv",
-      "args": ["run", "datashield-mcp"]
+      "args": ["run", "datashield-guard", "serve"]
     }
   }
 }
